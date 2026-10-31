@@ -22,56 +22,30 @@ namespace GpgPatcher.Gui
                 Padding = new Padding(16, 18, 16, 16),
                 Margin = new Padding(0),
             };
+            sidebar.Paint += (sender, args) =>
+            {
+                using (var dividerPen = new Pen(palette.Border))
+                {
+                    args.Graphics.DrawLine(dividerPen, sidebar.Width - 1, 0, sidebar.Width - 1, sidebar.Height);
+                }
+            };
+            sidebar.Resize += (sender, args) => sidebar.Invalidate();
 
             var layout = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 6,
+                RowCount = 5,
                 BackColor = sidebar.BackColor,
                 Margin = new Padding(0),
             };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 82f));
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 54f));
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 54f));
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 54f));
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             sidebar.Controls.Add(layout);
-
-            var brand = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 2,
-                RowCount = 1,
-                BackColor = sidebar.BackColor,
-                Margin = new Padding(0, 0, 0, 12),
-            };
-            brand.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 50f));
-            brand.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            brand.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            layout.Controls.Add(brand, 0, 0);
-
-            var logo = new PictureBox
-            {
-                Dock = DockStyle.Fill,
-                Image = brandLogo,
-                SizeMode = PictureBoxSizeMode.Zoom,
-                Margin = new Padding(0, 4, 6, 4),
-                BackColor = sidebar.BackColor,
-            };
-            brand.Controls.Add(logo, 0, 0);
-
-            brand.Controls.Add(new Label
-            {
-                Dock = DockStyle.Fill,
-                Text = "GPG Patcher",
-                ForeColor = palette.TextPrimary,
-                Font = palette.CreateUiFont(14f, FontStyle.Bold),
-                TextAlign = ContentAlignment.MiddleLeft,
-                Margin = new Padding(0),
-            }, 1, 0);
 
             layout.Controls.Add(new Label
             {
@@ -81,14 +55,14 @@ namespace GpgPatcher.Gui
                 Font = palette.CreateUiFont(8f, FontStyle.Bold),
                 TextAlign = ContentAlignment.MiddleLeft,
                 Margin = new Padding(8, 0, 0, 4),
-            }, 0, 1);
+            }, 0, 0);
 
             homeNavigationButton = CreateNavigationButton("Home", "\uE80F", (sender, args) => NavigateTo(AppPage.Home));
             instancesNavigationButton = CreateNavigationButton("Accounts", "\uE716", (sender, args) => NavigateTo(AppPage.Instances));
             settingsNavigationButton = CreateNavigationButton("Settings", "\uE713", (sender, args) => NavigateTo(AppPage.Settings));
-            layout.Controls.Add(homeNavigationButton, 0, 2);
-            layout.Controls.Add(instancesNavigationButton, 0, 3);
-            layout.Controls.Add(settingsNavigationButton, 0, 4);
+            layout.Controls.Add(homeNavigationButton, 0, 1);
+            layout.Controls.Add(instancesNavigationButton, 0, 2);
+            layout.Controls.Add(settingsNavigationButton, 0, 3);
 
             return sidebar;
         }
@@ -147,7 +121,7 @@ namespace GpgPatcher.Gui
                 BackColor = palette.WindowBackground,
                 Margin = new Padding(0),
             };
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 88f));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 64f));
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 196f));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             root.Controls.Add(CreateActionPanel(), 0, 0);

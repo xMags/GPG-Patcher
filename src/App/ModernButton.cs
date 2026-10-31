@@ -31,7 +31,7 @@ namespace GpgPatcher.Gui
             Size = new Size(124, 42);
             Cursor = Cursors.Hand;
             Font = SystemFonts.MessageBoxFont;
-            fluentIconFont = CreateFluentIconFont();
+            fluentIconFont = CreateFluentIconFont(12f);
 
             SetStyle(
                 ControlStyles.AllPaintingInWmPaint
@@ -50,6 +50,8 @@ namespace GpgPatcher.Gui
         public string IconGlyph { get; set; }
 
         public bool CenterContent { get; set; }
+
+        public bool SquareCorners { get; set; }
 
         protected override void OnMouseEnter(EventArgs e)
         {
@@ -100,7 +102,7 @@ namespace GpgPatcher.Gui
             var bounds = new Rectangle(0, 0, Width - 1, Height - 1);
             var colors = ResolveColors(palette);
 
-            using (var path = RoundedDrawing.CreateRoundedRectangle(bounds, CornerRadius <= 0 ? 14 : CornerRadius))
+            using (var path = RoundedDrawing.CreateRoundedRectangle(bounds, ResolveCornerRadius()))
             using (var fillBrush = new SolidBrush(colors.Fill))
             using (var borderPen = new Pen(colors.Border))
             {
@@ -158,6 +160,16 @@ namespace GpgPatcher.Gui
             base.Dispose(disposing);
         }
 
+        private int ResolveCornerRadius()
+        {
+            if (SquareCorners)
+            {
+                return 0;
+            }
+
+            return CornerRadius <= 0 ? 14 : CornerRadius;
+        }
+
         private int ResolveIconLeft()
         {
             if (!CenterContent)
@@ -170,16 +182,16 @@ namespace GpgPatcher.Gui
             return Math.Max(DefaultIconLeft, (Width - contentWidth) / 2);
         }
 
-        private static Font CreateFluentIconFont()
+        internal static Font CreateFluentIconFont(float size)
         {
-            var font = new Font("Segoe Fluent Icons", 12f, FontStyle.Regular, GraphicsUnit.Point);
+            var font = new Font("Segoe Fluent Icons", size, FontStyle.Regular, GraphicsUnit.Point);
             if (string.Equals(font.Name, "Segoe Fluent Icons", StringComparison.OrdinalIgnoreCase))
             {
                 return font;
             }
 
             font.Dispose();
-            return new Font("Segoe MDL2 Assets", 12f, FontStyle.Regular, GraphicsUnit.Point);
+            return new Font("Segoe MDL2 Assets", size, FontStyle.Regular, GraphicsUnit.Point);
         }
 
         private ButtonColors ResolveColors(ThemePalette palette)

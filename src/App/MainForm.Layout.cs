@@ -8,27 +8,15 @@ namespace GpgPatcher.Gui
     {
         private Control CreateActionPanel()
         {
-            var actionPanel = new ModernSurfacePanel
-            {
-                Dock = DockStyle.Fill,
-                Height = 76,
-                Margin = new Padding(0, 0, 0, 12),
-                Padding = new Padding(18, 12, 18, 12),
-                CornerRadius = 0,
-                FillColor = palette.Surface,
-                BorderColor = palette.Border,
-            };
-
             var maintenanceRow = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 5,
                 RowCount = 1,
-                BackColor = actionPanel.FillColor,
-                Margin = new Padding(0),
+                BackColor = palette.WindowBackground,
+                Margin = new Padding(0, 0, 0, 12),
             };
             maintenanceRow.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            actionPanel.Controls.Add(maintenanceRow);
 
             patchButton = CreateButton("Patch", ModernButtonTone.Primary, async (sender, args) => await PatchAsync());
             refreshButton = CreateButton("Refresh", ModernButtonTone.Secondary, async (sender, args) => await RefreshInspectAsync());
@@ -46,15 +34,15 @@ namespace GpgPatcher.Gui
             for (var column = 0; column < actionButtons.Length; column++)
             {
                 var button = actionButtons[column];
-                var isLast = column == actionButtons.Length - 1;
                 maintenanceRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
                 button.CenterContent = true;
-                button.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-                button.Margin = new Padding(0, 0, isLast ? 0 : 12, 0);
+                button.SquareCorners = true;
+                button.Dock = DockStyle.Fill;
+                button.Margin = new Padding(0);
                 maintenanceRow.Controls.Add(button, column, 0);
             }
 
-            return actionPanel;
+            return maintenanceRow;
         }
 
         private Control CreateMetricsGrid()

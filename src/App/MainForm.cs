@@ -11,6 +11,7 @@ namespace GpgPatcher.Gui
         private readonly PlayGamesAccountRepository accountRepository;
         private readonly Image brandLogo;
         private readonly Icon appIcon;
+        private WindowTitleBar windowTitleBar;
         private Panel pageHost;
         private Control homePage;
         private Control instancesPage;
@@ -92,13 +93,21 @@ namespace GpgPatcher.Gui
                 RowCount = 1,
                 BackColor = palette.WindowBackground,
             };
-            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 244f));
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 224f));
             root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             Controls.Add(root);
 
             root.Controls.Add(CreateNavigationPanel(), 0, 0);
             root.Controls.Add(CreatePageHost(), 1, 0);
+
+            // Must be a direct child of the form: its hit tests fall through to the parent.
+            windowTitleBar = new WindowTitleBar(palette, brandLogo, "GPG Patcher");
+            windowTitleBar.MinimizeClicked += (sender, args) => WindowState = FormWindowState.Minimized;
+            windowTitleBar.MaximizeClicked += (sender, args) => ToggleMaximized();
+            windowTitleBar.CloseClicked += (sender, args) => Close();
+            Controls.Add(windowTitleBar);
+            SizeChanged += (sender, args) => windowTitleBar.SetMaximized(WindowState == FormWindowState.Maximized);
 
             ApplyInitialChrome();
             NavigateTo(AppPage.Home);
