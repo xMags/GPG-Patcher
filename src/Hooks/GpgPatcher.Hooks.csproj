@@ -7,6 +7,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
+    <ServiceLibHintPath Condition="'$(ServiceLibHintPath)' == '' and Exists('$(LOCALAPPDATA)\GpgPatcher\backup\26.10.561.2\ServiceLib.dll')">$(LOCALAPPDATA)\GpgPatcher\backup\26.10.561.2\ServiceLib.dll</ServiceLibHintPath>
     <ServiceLibHintPath Condition="'$(ServiceLibHintPath)' == '' and Exists('$(LOCALAPPDATA)\GpgPatcher\backup\26.5.377.0\ServiceLib.dll')">$(LOCALAPPDATA)\GpgPatcher\backup\26.5.377.0\ServiceLib.dll</ServiceLibHintPath>
     <ServiceLibHintPath Condition="'$(ServiceLibHintPath)' == '' and Exists('$(LOCALAPPDATA)\GpgPatcher\backup\26.5.27.1\ServiceLib.dll')">$(LOCALAPPDATA)\GpgPatcher\backup\26.5.27.1\ServiceLib.dll</ServiceLibHintPath>
     <ServiceLibHintPath Condition="'$(ServiceLibHintPath)' == '' and Exists('$(LOCALAPPDATA)\GpgPatcher\backup\26.3.1007.1\ServiceLib.dll')">$(LOCALAPPDATA)\GpgPatcher\backup\26.3.1007.1\ServiceLib.dll</ServiceLibHintPath>
