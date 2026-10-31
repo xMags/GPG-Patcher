@@ -36,7 +36,6 @@ namespace GpgPatcher.Gui
         private Label phenotypeFallbackNoteLabel;
         private Label appliedResolutionLabel;
         private Label resolutionApplyMessageLabel;
-        private StatusChip homeTargetProfileChip;
         private ResolutionProfile selectedResolutionProfile;
         private ResolutionProfile appliedResolutionProfile;
         private StatusChip statusChip;

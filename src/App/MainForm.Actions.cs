@@ -308,11 +308,6 @@ namespace GpgPatcher.Gui
 
             targetResolutionCard.ValueText = appliedResolutionProfile.Value;
             targetResolutionCard.ApplyTheme(palette, summary.IsPatched);
-            homeTargetProfileChip.Text = appliedResolutionProfile.Name
-                + "  •  "
-                + appliedResolutionProfile.Width
-                + " × "
-                + appliedResolutionProfile.Height;
             ApplyResolutionSelectionPresentation();
 
             if (instancesPage != null

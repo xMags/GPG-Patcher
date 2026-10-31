@@ -142,19 +142,17 @@ namespace GpgPatcher.Gui
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 4,
+                RowCount = 3,
                 Padding = new Padding(24, 20, 24, 0),
                 BackColor = palette.WindowBackground,
                 Margin = new Padding(0),
             };
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 62f));
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 88f));
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 196f));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            root.Controls.Add(CreateHomeHeader(), 0, 0);
-            root.Controls.Add(CreateActionPanel(), 0, 1);
-            root.Controls.Add(CreateMetricsGrid(), 0, 2);
-            root.Controls.Add(CreateOutputPanel(), 0, 3);
+            root.Controls.Add(CreateActionPanel(), 0, 0);
+            root.Controls.Add(CreateMetricsGrid(), 0, 1);
+            root.Controls.Add(CreateOutputPanel(), 0, 2);
             page.Controls.Add(root);
             return page;
         }

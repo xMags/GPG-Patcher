@@ -6,36 +6,6 @@ namespace GpgPatcher.Gui
 {
     internal sealed partial class MainForm
     {
-        private Control CreateHomeHeader()
-        {
-            var header = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 2,
-                RowCount = 1,
-                BackColor = palette.WindowBackground,
-                Margin = new Padding(0),
-            };
-            header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            header.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-
-            var heading = CreatePageLabel("Overview", 22f, FontStyle.Bold, palette.TextPrimary);
-            heading.Margin = new Padding(2, 0, 0, 8);
-            header.Controls.Add(heading, 0, 0);
-
-            homeTargetProfileChip = CreateChip();
-            homeTargetProfileChip.Text = "UHD  •  2160 × 3840";
-            homeTargetProfileChip.FillColor = palette.AccentSoft;
-            homeTargetProfileChip.BorderColor = palette.BorderStrong;
-            homeTargetProfileChip.TextColor = palette.IsDark ? palette.TextPrimary : palette.AccentPressed;
-            homeTargetProfileChip.Anchor = AnchorStyles.Right;
-            homeTargetProfileChip.Margin = new Padding(18, 0, 2, 8);
-            header.Controls.Add(homeTargetProfileChip, 1, 0);
-
-            return header;
-        }
-
         private Control CreateActionPanel()
         {
             var actionPanel = new ModernSurfacePanel
@@ -183,22 +153,40 @@ namespace GpgPatcher.Gui
             };
             outputLayout.Controls.Add(codePanel, 0, 1);
 
-            outputTextBox = new RichTextBox
+            // A RichTextBox with no scrollbar ignores the mouse wheel, so the native bar stays
+            // enabled and this viewport clips it out of sight.
+            var outputViewport = new Panel
             {
                 Dock = DockStyle.Fill,
+                BackColor = palette.CodeBackground,
+                Margin = new Padding(0),
+            };
+            codePanel.Controls.Add(outputViewport);
+
+            outputTextBox = new RichTextBox
+            {
+                Location = Point.Empty,
                 BorderStyle = BorderStyle.None,
                 ReadOnly = true,
                 DetectUrls = false,
-                ScrollBars = RichTextBoxScrollBars.Both,
-                WordWrap = false,
+                ScrollBars = RichTextBoxScrollBars.ForcedVertical,
+                WordWrap = true,
                 BackColor = palette.CodeBackground,
                 ForeColor = palette.CodeText,
                 Font = palette.CreateMonoFont(10f),
                 Margin = new Padding(0),
             };
-            codePanel.Controls.Add(outputTextBox);
+            outputViewport.Controls.Add(outputTextBox);
+            outputViewport.Resize += (sender, args) => FitOutputTextBox(outputViewport);
+            outputTextBox.HandleCreated += (sender, args) => FitOutputTextBox(outputViewport);
 
             return outputPanel;
+        }
+
+        private void FitOutputTextBox(Control viewport)
+        {
+            var scrollBarWidth = outputTextBox.Width - outputTextBox.ClientSize.Width;
+            outputTextBox.Size = new Size(viewport.ClientSize.Width + scrollBarWidth, viewport.ClientSize.Height);
         }
 
         private Control CreateFooterPanel()
