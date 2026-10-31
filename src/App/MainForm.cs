@@ -33,6 +33,10 @@ namespace GpgPatcher.Gui
         private ToggleSwitch phenotypeFallbackToggle;
         private Label phenotypeFallbackStateLabel;
         private Label phenotypeFallbackNoteLabel;
+        private ToggleSwitch autoPatchToggle;
+        private Label autoPatchStateLabel;
+        private Label autoPatchNoteLabel;
+        private bool autoPatchToggleUpdating;
         private Label appliedResolutionLabel;
         private Label resolutionApplyMessageLabel;
         private ResolutionProfile selectedResolutionProfile;

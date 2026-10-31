@@ -33,6 +33,37 @@ namespace GpgPatcher.Gui
             await RunElevatedCommandAsync(arguments, "Applying patch");
         }
 
+        private async Task ChangeAutoPatchAsync()
+        {
+            if (autoPatchToggleUpdating)
+            {
+                return;
+            }
+
+            var turningOn = autoPatchToggle.Checked;
+            await RunElevatedCommandAsync(
+                turningOn ? "auto-patch-enable" : "auto-patch-disable",
+                turningOn ? "Turning on auto-patch" : "Turning off auto-patch");
+            ApplyAutoPatchPresentation();
+        }
+
+        // Reads the saved state so a canceled prompt or failure puts the switch back.
+        private void ApplyAutoPatchPresentation()
+        {
+            var enabled = AutoPatchInstaller.IsEnabled();
+            var lastResult = AutoPatchStateStore.Read().LastResult;
+
+            autoPatchToggleUpdating = true;
+            autoPatchToggle.Checked = enabled;
+            autoPatchToggleUpdating = false;
+
+            autoPatchStateLabel.Text = enabled ? "On" : "Off";
+            autoPatchStateLabel.ForeColor = enabled ? palette.Accent : palette.TextSecondary;
+            autoPatchNoteLabel.Text = enabled && !string.IsNullOrWhiteSpace(lastResult)
+                ? lastResult
+                : "Patches again after Play Games updates.";
+        }
+
         private async Task AddAccountAsync()
         {
             await RunCapturedCommandAsync("add-account", "Starting add-account flow");
@@ -292,6 +323,7 @@ namespace GpgPatcher.Gui
             refreshAccountsButton.Enabled = !busy && !accountsRefreshInProgress;
             accountsFlowPanel.Enabled = !busy;
             restoreButton.Enabled = !busy;
+            autoPatchToggle.Enabled = !busy;
             phenotypeFallbackToggle.Enabled = !busy && selectedResolutionProfile.IsUhd;
             if (resolutionProfileButtons != null)
             {

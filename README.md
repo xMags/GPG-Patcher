@@ -91,6 +91,8 @@ The selected profile is applied the next time Patch runs. GPG Patcher updates th
 7. Return to Home and select **Verify** after the game starts.
 
 > [!TIP]
+> Turn on **Auto-patch** in Settings to patch again after each Google Play Games update. It asks for administrator permission once, installs to `C:\Program Files\GPG Patcher`, and waits for any open game to close. Turn it back on after updating GPG Patcher so the installed copy is refreshed. Updates the patcher does not support yet are left unpatched, with a notification.
+
 > Use **Restore** to return `ServiceLib.dll` and the service configuration to the pristine backed-up state. The Play Games service is restarted automatically after Patch or Restore.
 
 ## Accounts

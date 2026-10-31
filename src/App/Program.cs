@@ -31,7 +31,7 @@ namespace GpgPatcher.Gui
             var commandArgs = RemoveLogFileOption(args ?? Array.Empty<string>(), out var logPath);
             if (string.IsNullOrWhiteSpace(logPath))
             {
-                return PatcherCommandHost.Run(commandArgs);
+                return PatcherCommandHost.Run(commandArgs, BalloonNotifier.Show);
             }
 
             var logDirectory = Path.GetDirectoryName(logPath);
@@ -46,7 +46,7 @@ namespace GpgPatcher.Gui
                 writer.AutoFlush = true;
                 Console.SetOut(writer);
                 Console.SetError(writer);
-                return PatcherCommandHost.Run(commandArgs);
+                return PatcherCommandHost.Run(commandArgs, BalloonNotifier.Show);
             }
         }
 

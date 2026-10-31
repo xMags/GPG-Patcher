@@ -152,6 +152,9 @@ namespace GpgPatcher.Gui
                     return "Display check";
                 case "add-account":
                     return "Add account";
+                case "auto-patch-enable":
+                case "auto-patch-disable":
+                    return "Auto-patch";
                 default:
                     return "Account launch";
             }
@@ -188,6 +191,10 @@ namespace GpgPatcher.Gui
                     return "Original files restored";
                 case "verify":
                     return "Game is using your resolution";
+                case "auto-patch-enable":
+                    return "Auto-patch is on";
+                case "auto-patch-disable":
+                    return "Auto-patch is off";
                 default:
                     return "Done";
             }

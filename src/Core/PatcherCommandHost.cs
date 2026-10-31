@@ -9,11 +9,13 @@ namespace GpgPatcher
 {
     public static class PatcherCommandHost
     {
-        public static int Run(string[] args)
+        /// <param name="args">Command line, without the --headless switch.</param>
+        /// <param name="notify">Shows a title and message to the user; used by the watcher.</param>
+        public static int Run(string[] args, Action<string, string> notify)
         {
             try
             {
-                return RunCore(args ?? Array.Empty<string>());
+                return RunCore(args ?? Array.Empty<string>(), notify);
             }
             catch (FriendlyException ex)
             {
@@ -29,7 +31,7 @@ namespace GpgPatcher
             }
         }
 
-        private static int RunCore(string[] args)
+        private static int RunCore(string[] args, Action<string, string> notify)
         {
             if (args.Length == 0 || IsHelp(args[0]))
             {
@@ -85,6 +87,15 @@ namespace GpgPatcher
                 case "restore":
                     Restore(layout);
                     return 0;
+                case "auto-patch-enable":
+                    EnableAutoPatch(layout);
+                    return 0;
+                case "auto-patch-disable":
+                    DisableAutoPatch();
+                    return 0;
+                case "auto-patch-watch":
+                    EnsureAdministrator();
+                    return new AutoPatchWatcher(Patch, notify).Run();
                 default:
                     throw new FriendlyException("Unknown command '" + args[0] + "'.");
             }
@@ -155,7 +166,55 @@ namespace GpgPatcher
             Console.WriteLine("  virtual viewport requested: " + FormatVirtualViewportRequest(patchStatus));
         }
 
+        private static void EnableAutoPatch(PlayGamesInstallLayout layout)
+        {
+            EnsureAdministrator();
+            layout.EnsureInstallationExists();
+            layout.EnsureHookBuildExists();
+
+            var appliedResolution = ResolutionProfileStorage.ReadApplied(layout);
+            var state = AutoPatchStateStore.Read();
+            if (string.IsNullOrWhiteSpace(state.Resolution))
+            {
+                state.Resolution = appliedResolution.Value;
+                state.PhenotypeFallback = PatchStatusInspector.Inspect(layout).PhenotypeOverridePresent;
+                AutoPatchStateStore.Write(state);
+            }
+
+            AutoPatchInstaller.Enable(PatchStatusInspector.GetInstalledVersion(layout));
+            Console.WriteLine("PASS: Auto-patch is on.");
+        }
+
+        private static void DisableAutoPatch()
+        {
+            EnsureAdministrator();
+            AutoPatchInstaller.Disable();
+            Console.WriteLine("PASS: Auto-patch is off.");
+        }
+
+        private static void RecordMaintenance(string version, PatchCommandOptions options)
+        {
+            var state = AutoPatchStateStore.Read();
+            state.HandledVersion = version;
+            state.FailedAttempts = 0;
+            if (options != null)
+            {
+                state.Resolution = options.Resolution.Value;
+                state.PhenotypeFallback = options.EnablePhenotypeFallback;
+            }
+
+            AutoPatchStateStore.Write(state);
+        }
+
         private static void Patch(PlayGamesInstallLayout layout, PatchCommandOptions options)
+        {
+            using (MaintenanceLock.Acquire())
+            {
+                PatchLocked(layout, options);
+            }
+        }
+
+        private static void PatchLocked(PlayGamesInstallLayout layout, PatchCommandOptions options)
         {
             EnsureAdministrator();
             layout.EnsureInstallationExists();
@@ -200,6 +259,7 @@ namespace GpgPatcher
 
                 PlayGamesServiceManager.Start(layout);
                 startedAgain = true;
+                RecordMaintenance(patchStatus.InstalledVersion, options);
 
                 Console.WriteLine("Patch complete");
                 Console.WriteLine("  available-settings method changed: " + patchResult.AvailableSettingsPatched);
@@ -578,6 +638,14 @@ namespace GpgPatcher
 
         private static void Restore(PlayGamesInstallLayout layout)
         {
+            using (MaintenanceLock.Acquire())
+            {
+                RestoreLocked(layout);
+            }
+        }
+
+        private static void RestoreLocked(PlayGamesInstallLayout layout)
+        {
             EnsureAdministrator();
             layout.EnsureInstallationExists();
             EnsureBackupExists(layout);
@@ -594,6 +662,7 @@ namespace GpgPatcher
 
                 PlayGamesServiceManager.Start(layout);
                 startedAgain = true;
+                RecordMaintenance(PatchStatusInspector.GetInstalledVersion(layout), null);
 
                 Console.WriteLine("Restore complete");
                 Console.WriteLine("  restored: " + layout.ServiceLibPath);
@@ -816,6 +885,8 @@ namespace GpgPatcher
             Console.WriteLine("  force-viewport");
             Console.WriteLine("    Resize the visible Whiteout Survival crosvm surface to the installed target resolution.");
             Console.WriteLine("    Add --allow-offscreen to force it even when the monitor is too small and the window will be cropped.");
+            Console.WriteLine("  auto-patch-enable | auto-patch-disable");
+            Console.WriteLine("    Turn automatic patching after Play Games updates on or off.");
             Console.WriteLine("  viewport-shim --experimental");
             Console.WriteLine("    Debug only: inject the native viewport shim. This can crop the game view and is disabled without --experimental.");
             Console.WriteLine("  restore");

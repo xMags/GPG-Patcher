@@ -39,6 +39,7 @@ namespace GpgPatcher.Tests
                 RunCatalogAndParserTests();
                 RunStorageAndConfigurationTests();
                 RunAccountTests();
+                RunAutoPatchTests();
                 RunInstalledAccountReadProcess();
                 foreach (var profile in ResolutionProfiles.All)
                 {
@@ -47,6 +48,7 @@ namespace GpgPatcher.Tests
                 RunHookDefaultProcess("missing");
                 RunHookDefaultProcess("invalid");
 
+                RunAutoPatchWatcherTests();
                 RunTempCopyPatchTest(FindPristineServiceLib());
                 RunInstalledBuildPatchTest();
                 Console.WriteLine("PASS: " + assertions + " assertions completed.");
@@ -261,6 +263,163 @@ namespace GpgPatcher.Tests
                     () => WindowsSqlite.ReadSingleBlob(Path.Combine(missingLocal, "store.db"), "SELECT value FROM missing"),
                     "corrupt account database");
 
+            }
+            finally
+            {
+                Directory.Delete(root, true);
+            }
+        }
+
+        private static void RunAutoPatchTests()
+        {
+            var handled = new AutoPatchState { HandledVersion = "1.0" };
+            AutoPatchSnapshot Snapshot(string version, bool compatible, bool patched, bool game)
+            {
+                return new AutoPatchSnapshot
+                {
+                    InstalledVersion = version,
+                    IsCompatible = compatible,
+                    IsPatched = patched,
+                    GameWindowOpen = game,
+                };
+            }
+
+            Assert(AutoPatchPolicy.Decide(Snapshot("2.0", true, false, false), handled) == AutoPatchAction.Patch, "new unpatched version is patched");
+            Assert(AutoPatchPolicy.Decide(Snapshot("1.0", true, false, false), handled) == AutoPatchAction.None, "Restore is not undone on the same version");
+            Assert(AutoPatchPolicy.Decide(Snapshot("2.0", true, false, true), handled) == AutoPatchAction.WaitForGameToClose, "open game delays the patch");
+            Assert(AutoPatchPolicy.Decide(Snapshot("2.0", false, false, false), handled) == AutoPatchAction.ReportUnsupported, "unsupported update is reported, never patched");
+            Assert(AutoPatchPolicy.Decide(Snapshot("2.0", false, false, true), handled) == AutoPatchAction.ReportUnsupported, "unsupported update does not wait for the game");
+            Assert(AutoPatchPolicy.Decide(Snapshot("2.0", true, true, false), handled) == AutoPatchAction.RecordAlreadyPatched, "manually patched update is only recorded");
+            Assert(AutoPatchPolicy.Decide(Snapshot(string.Empty, true, false, false), handled) == AutoPatchAction.None, "unreadable version does nothing");
+            Assert(AutoPatchPolicy.Decide(Snapshot("2.0", true, false, false), new AutoPatchState()) == AutoPatchAction.Patch, "missing history still patches");
+
+            var directory = CreateTempDirectory();
+            try
+            {
+                var path = Path.Combine(directory, "nested", "state.txt");
+                Assert(!AutoPatchStateStore.Read(path).Enabled, "missing state reads as off");
+                AutoPatchStateStore.Write(path, new AutoPatchState
+                {
+                    Enabled = true,
+                    HandledVersion = "26.10.561.2",
+                    Resolution = "2160x3840",
+                    PhenotypeFallback = true,
+                    LastResult = "Patched = line\r\nbreak",
+                    FailedAttempts = 2,
+                });
+                var read = AutoPatchStateStore.Read(path);
+                Assert(read.Enabled && read.PhenotypeFallback, "state keeps switches");
+                Assert(read.HandledVersion == "26.10.561.2" && read.Resolution == "2160x3840", "state keeps version and resolution");
+                Assert(read.LastResult == "Patched = line  break", "state keeps one-line result containing equals");
+                Assert(read.FailedAttempts == 2, "state keeps attempt count");
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+
+            var watcher = XDocument.Parse(ScheduledTaskClient.BuildWatcherTaskXml(@"PC\A&B", @"C:\Program Files\GPG Patcher\GPG Patcher.exe"));
+            var ns = watcher.Root.Name.Namespace;
+            Assert(watcher.Descendants(ns + "RunLevel").Single().Value == "HighestAvailable", "watcher runs elevated");
+            Assert(watcher.Descendants(ns + "LogonType").Single().Value == "InteractiveToken", "watcher runs as the signed-in user, not SYSTEM");
+            Assert(watcher.Descendants(ns + "UserId").All(element => element.Value == @"PC\A&B"), "user name is escaped and restored");
+            Assert(watcher.Descendants(ns + "LogonTrigger").Count() == 1, "watcher starts at logon");
+            Assert(watcher.Descendants(ns + "ExecutionTimeLimit").Single().Value == "PT0S", "watcher has no time limit");
+
+            var starter = XDocument.Parse(ScheduledTaskClient.BuildUserLevelStartTaskXml(@"PC\Dev", @"C:\Play\Bootstrapper.exe", "/bg"));
+            Assert(starter.Descendants(ns + "RunLevel").Single().Value == "LeastPrivilege", "Play Games restarts without admin rights");
+            Assert(!starter.Descendants(ns + "LogonTrigger").Any(), "restart task never runs by itself");
+            Assert(starter.Descendants(ns + "WorkingDirectory").Single().Value == @"C:\Play", "restart task runs from the install folder");
+
+            var created = PatchCommandOptions.Create(ResolutionProfiles.Default, true);
+            Assert(created.Resolution.IsUhd && created.EnablePhenotypeFallback, "auto-patch keeps the fallback choice");
+        }
+
+        // Plays out each update scenario against a temporary copy of a real install.
+        private static void RunAutoPatchWatcherTests()
+        {
+            var pristine = FindPristineServiceLib();
+            var installedExe = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                @"Google\Play Games\current\service\Service.exe");
+            Assert(File.Exists(installedExe), "watcher scenarios have a real Service.exe for its version");
+
+            var root = CreateTempDirectory();
+            try
+            {
+                var serviceDirectory = Path.Combine(root, "service");
+                Directory.CreateDirectory(serviceDirectory);
+                var serviceLib = Path.Combine(serviceDirectory, "ServiceLib.dll");
+                File.Copy(installedExe, Path.Combine(serviceDirectory, "Service.exe"));
+                File.Copy(Path.Combine(Path.GetDirectoryName(pristine), "Service.exe.config"), Path.Combine(serviceDirectory, "Service.exe.config"));
+                File.Copy(pristine, serviceLib);
+
+                var layout = new PlayGamesInstallLayout(root, serviceDirectory, root, root, root, root);
+                var version = PatchStatusInspector.GetInstalledVersion(layout);
+                var statePath = Path.Combine(root, "state", "state.txt");
+                var patches = new List<PatchCommandOptions>();
+                var notes = new List<string>();
+                var gameOpen = false;
+                Exception patchFailure = null;
+
+                var watcher = new AutoPatchWatcher(
+                    (patchLayout, options) =>
+                    {
+                        if (patchFailure != null)
+                        {
+                            throw patchFailure;
+                        }
+
+                        patches.Add(options);
+                    },
+                    (title, message) => notes.Add(title),
+                    () => layout,
+                    () => gameOpen,
+                    statePath);
+
+                AutoPatchStateStore.Write(statePath, new AutoPatchState
+                {
+                    Enabled = true,
+                    HandledVersion = "older",
+                    Resolution = "2160x3840",
+                    PhenotypeFallback = true,
+                });
+
+                gameOpen = true;
+                Assert(watcher.EvaluateSafely() && patches.Count == 0, "open game delays the patch and retries soon");
+                gameOpen = false;
+                Assert(!watcher.EvaluateSafely() && patches.Count == 1, "update is patched once the game closes");
+                Assert(patches[0].Resolution.Value == "2160x3840" && patches[0].EnablePhenotypeFallback, "update keeps the saved resolution and fallback");
+                Assert(notes.Single() == "Play Games updated and patched", "successful update notifies once");
+                Assert(AutoPatchStateStore.Read(statePath).HandledVersion == version, "patched version is recorded");
+                Assert(!watcher.EvaluateSafely() && patches.Count == 1, "same version is never patched twice");
+
+                var failing = AutoPatchStateStore.Read(statePath);
+                failing.HandledVersion = "older";
+                AutoPatchStateStore.Write(statePath, failing);
+                notes.Clear();
+                patchFailure = new IOException("locked");
+                Assert(watcher.EvaluateSafely() && watcher.EvaluateSafely(), "failed patches retry");
+                Assert(notes.Count == 0, "retries stay quiet");
+                Assert(!watcher.EvaluateSafely() && notes.Single() == "Auto-patch failed", "third failure stops and notifies");
+                Assert(!watcher.EvaluateSafely() && notes.Count == 1, "failed version is not retried forever");
+                patchFailure = null;
+
+                var unsupported = AutoPatchStateStore.Read(statePath);
+                unsupported.HandledVersion = "older";
+                AutoPatchStateStore.Write(statePath, unsupported);
+                notes.Clear();
+                patches.Clear();
+                File.Copy(typeof(XDocument).Assembly.Location, serviceLib, true);
+                Assert(!watcher.EvaluateSafely() && patches.Count == 0, "unsupported update is left unpatched");
+                Assert(notes.Single() == "Play Games update not supported yet", "unsupported update notifies");
+                Assert(!watcher.EvaluateSafely() && notes.Count == 1, "unsupported update notifies only once");
+
+                var midSwap = AutoPatchStateStore.Read(statePath);
+                midSwap.HandledVersion = "older";
+                AutoPatchStateStore.Write(statePath, midSwap);
+                File.Delete(serviceLib);
+                Assert(watcher.EvaluateSafely() && patches.Count == 0, "missing files during a swap retry without crashing");
             }
             finally
             {

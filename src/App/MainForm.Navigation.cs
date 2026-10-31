@@ -175,9 +175,9 @@ namespace GpgPatcher.Gui
             var settingsStack = new TableLayoutPanel
             {
                 Dock = DockStyle.Top,
-                Height = 244,
+                Height = 338,
                 ColumnCount = 1,
-                RowCount = 3,
+                RowCount = 5,
                 BackColor = palette.WindowBackground,
                 Margin = new Padding(0),
             };
@@ -185,11 +185,15 @@ namespace GpgPatcher.Gui
             settingsStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 150f));
             settingsStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 12f));
             settingsStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 82f));
+            settingsStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 12f));
+            settingsStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 82f));
             settingsContent.Controls.Add(settingsStack);
 
             settingsStack.Controls.Add(CreateResolutionProfileCard(), 0, 0);
             settingsStack.Controls.Add(CreatePhenotypeFallbackCard(), 0, 2);
+            settingsStack.Controls.Add(CreateAutoPatchCard(), 0, 4);
             ApplyResolutionSelectionPresentation();
+            ApplyAutoPatchPresentation();
 
             return page;
         }
@@ -325,6 +329,63 @@ namespace GpgPatcher.Gui
             };
 
             return fallbackCard;
+        }
+
+        private Control CreateAutoPatchCard()
+        {
+            var card = new ModernSurfacePanel
+            {
+                Dock = DockStyle.Fill,
+                CornerRadius = MetricCard.MildCornerRadius,
+                FillColor = palette.Surface,
+                BorderColor = palette.Border,
+                Padding = new Padding(24, 12, 24, 12),
+                Margin = new Padding(0),
+            };
+
+            var layout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 3,
+                RowCount = 2,
+                BackColor = card.FillColor,
+                Margin = new Padding(0),
+            };
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 70f));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80f));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 55f));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 45f));
+            card.Controls.Add(layout);
+
+            layout.Controls.Add(CreatePageLabel("Auto-patch", 12f, FontStyle.Bold, palette.TextPrimary), 0, 0);
+            autoPatchNoteLabel = CreatePageLabel(string.Empty, 9f, FontStyle.Regular, palette.TextSecondary);
+            layout.Controls.Add(autoPatchNoteLabel, 0, 1);
+
+            autoPatchStateLabel = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = "Off",
+                ForeColor = palette.TextSecondary,
+                Font = palette.CreateUiFont(8.5f, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleRight,
+                Margin = new Padding(0, 0, 10, 0),
+            };
+            layout.Controls.Add(autoPatchStateLabel, 1, 0);
+            layout.SetRowSpan(autoPatchStateLabel, 2);
+
+            autoPatchToggle = new ToggleSwitch
+            {
+                Palette = palette,
+                AccessibleName = "Auto-patch",
+                Anchor = AnchorStyles.Right,
+                Margin = new Padding(0),
+            };
+            layout.Controls.Add(autoPatchToggle, 2, 0);
+            layout.SetRowSpan(autoPatchToggle, 2);
+            autoPatchToggle.CheckedChanged += async (sender, args) => await ChangeAutoPatchAsync();
+
+            return card;
         }
 
         private void SelectResolutionProfile(ResolutionProfile profile)

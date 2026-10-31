@@ -71,6 +71,11 @@ namespace GpgPatcher
         private const uint GwChild = 5;
         private const int DwmwaExtendedFrameBounds = 9;
 
+        public static bool IsGameWindowOpen()
+        {
+            return FindTargetWindow() != null;
+        }
+
         public static ViewportDiagnosticResult Capture(
             HostViewportLogEntry hostViewport,
             ResolutionProfile targetResolution)

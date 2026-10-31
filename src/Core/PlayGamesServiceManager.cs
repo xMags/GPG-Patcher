@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
+using System.Security.Principal;
 using System.ServiceProcess;
+using System.Threading;
 
 namespace GpgPatcher
 {
     internal static class PlayGamesServiceManager
     {
+        private const string StartTaskName = @"\GPG Patcher\StartPlayGames";
         private static readonly TimeSpan RestartTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan UserLevelStartTimeout = TimeSpan.FromSeconds(20);
 
         public static void Restart(PlayGamesInstallLayout layout)
         {
@@ -65,12 +69,76 @@ namespace GpgPatcher
                 }
             }
 
+            if (IsElevated() && TryStartAtUserLevel(layout))
+            {
+                return;
+            }
+
             using (var process = new Process())
             {
                 process.StartInfo.FileName = layout.ServiceExePath;
                 process.StartInfo.WorkingDirectory = layout.ServiceDirectory;
                 process.StartInfo.UseShellExecute = false;
                 process.Start();
+            }
+        }
+
+        // Patch and Restore run as admin, but Play Games must not inherit that. A one-shot task
+        // starts it through Google's quiet launcher as the signed-in user with normal rights.
+        private static bool TryStartAtUserLevel(PlayGamesInstallLayout layout)
+        {
+            var bootstrapperPath = Path.Combine(layout.InstallRoot, "Bootstrapper.exe");
+            if (!File.Exists(bootstrapperPath))
+            {
+                return false;
+            }
+
+            try
+            {
+                ScheduledTaskClient.Register(
+                    StartTaskName,
+                    ScheduledTaskClient.BuildUserLevelStartTaskXml(AutoPatchInstaller.CurrentUserName(), bootstrapperPath, "/bg"));
+                ScheduledTaskClient.Start(StartTaskName);
+                return WaitForServiceProcess(layout.ServiceExePath);
+            }
+            catch (FriendlyException)
+            {
+                return false;
+            }
+            finally
+            {
+                ScheduledTaskClient.TryDelete(StartTaskName);
+            }
+        }
+
+        private static bool WaitForServiceProcess(string serviceExePath)
+        {
+            var deadline = DateTime.UtcNow + UserLevelStartTimeout;
+            while (DateTime.UtcNow < deadline)
+            {
+                var running = false;
+                foreach (var process in GetServiceProcesses(serviceExePath))
+                {
+                    running = true;
+                    process.Dispose();
+                }
+
+                if (running)
+                {
+                    return true;
+                }
+
+                Thread.Sleep(250);
+            }
+
+            return false;
+        }
+
+        private static bool IsElevated()
+        {
+            using (var identity = WindowsIdentity.GetCurrent())
+            {
+                return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
             }
         }
 

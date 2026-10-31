@@ -14,6 +14,21 @@ namespace GpgPatcher
 
         public bool EnablePhenotypeFallback { get; }
 
+        public static PatchCommandOptions Create(ResolutionProfile resolution, bool enablePhenotypeFallback)
+        {
+            if (resolution == null)
+            {
+                throw new ArgumentNullException(nameof(resolution));
+            }
+
+            if (enablePhenotypeFallback && !resolution.IsUhd)
+            {
+                throw new ArgumentException("Phenotype fallback is only available for UHD.", nameof(enablePhenotypeFallback));
+            }
+
+            return new PatchCommandOptions(resolution, enablePhenotypeFallback);
+        }
+
         public static PatchCommandOptions Parse(string[] arguments)
         {
             var resolution = ResolutionProfiles.Default;
