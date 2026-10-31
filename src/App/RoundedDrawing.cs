@@ -4,12 +4,20 @@ using System.Drawing.Drawing2D;
 
 namespace GpgPatcher.Gui
 {
+    internal enum RoundedSides
+    {
+        All,
+        Left,
+        Right,
+        None,
+    }
+
     internal static class RoundedDrawing
     {
-        public static GraphicsPath CreateRoundedRectangle(Rectangle bounds, int radius)
+        public static GraphicsPath CreateRoundedRectangle(Rectangle bounds, int radius, RoundedSides sides = RoundedSides.All)
         {
             var path = new GraphicsPath();
-            if (radius <= 0)
+            if (radius <= 0 || sides == RoundedSides.None)
             {
                 path.AddRectangle(bounds);
                 path.CloseFigure();
@@ -19,15 +27,29 @@ namespace GpgPatcher.Gui
             var diameter = Math.Min(Math.Min(bounds.Width, bounds.Height), radius * 2);
             var arc = new Rectangle(bounds.Location, new Size(diameter, diameter));
 
-            path.AddArc(arc, 180, 90);
+            var roundLeft = sides != RoundedSides.Right;
+            var roundRight = sides != RoundedSides.Left;
+
+            AddCorner(path, arc, 180, roundLeft, new Point(bounds.Left, bounds.Top));
             arc.X = bounds.Right - diameter;
-            path.AddArc(arc, 270, 90);
+            AddCorner(path, arc, 270, roundRight, new Point(bounds.Right, bounds.Top));
             arc.Y = bounds.Bottom - diameter;
-            path.AddArc(arc, 0, 90);
+            AddCorner(path, arc, 0, roundRight, new Point(bounds.Right, bounds.Bottom));
             arc.X = bounds.Left;
-            path.AddArc(arc, 90, 90);
+            AddCorner(path, arc, 90, roundLeft, new Point(bounds.Left, bounds.Bottom));
             path.CloseFigure();
             return path;
+        }
+
+        private static void AddCorner(GraphicsPath path, Rectangle arc, float startAngle, bool rounded, Point squareCorner)
+        {
+            if (rounded)
+            {
+                path.AddArc(arc, startAngle, 90);
+                return;
+            }
+
+            path.AddLine(squareCorner, squareCorner);
         }
     }
 }

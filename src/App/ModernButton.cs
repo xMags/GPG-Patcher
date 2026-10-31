@@ -51,7 +51,7 @@ namespace GpgPatcher.Gui
 
         public bool CenterContent { get; set; }
 
-        public bool SquareCorners { get; set; }
+        public RoundedSides RoundedSides { get; set; } = RoundedSides.All;
 
         protected override void OnMouseEnter(EventArgs e)
         {
@@ -102,7 +102,7 @@ namespace GpgPatcher.Gui
             var bounds = new Rectangle(0, 0, Width - 1, Height - 1);
             var colors = ResolveColors(palette);
 
-            using (var path = RoundedDrawing.CreateRoundedRectangle(bounds, ResolveCornerRadius()))
+            using (var path = RoundedDrawing.CreateRoundedRectangle(bounds, CornerRadius <= 0 ? 14 : CornerRadius, RoundedSides))
             using (var fillBrush = new SolidBrush(colors.Fill))
             using (var borderPen = new Pen(colors.Border))
             {
@@ -158,16 +158,6 @@ namespace GpgPatcher.Gui
             }
 
             base.Dispose(disposing);
-        }
-
-        private int ResolveCornerRadius()
-        {
-            if (SquareCorners)
-            {
-                return 0;
-            }
-
-            return CornerRadius <= 0 ? 14 : CornerRadius;
         }
 
         private int ResolveIconLeft()

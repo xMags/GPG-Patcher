@@ -36,7 +36,10 @@ namespace GpgPatcher.Gui
                 var button = actionButtons[column];
                 maintenanceRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
                 button.CenterContent = true;
-                button.SquareCorners = true;
+                button.CornerRadius = MetricCard.MildCornerRadius;
+                button.RoundedSides = column == 0
+                    ? RoundedSides.Left
+                    : column == actionButtons.Length - 1 ? RoundedSides.Right : RoundedSides.None;
                 button.Dock = DockStyle.Fill;
                 button.Margin = new Padding(0);
                 maintenanceRow.Controls.Add(button, column, 0);
@@ -166,6 +169,7 @@ namespace GpgPatcher.Gui
                 Margin = new Padding(0),
             };
             outputViewport.Controls.Add(outputTextBox);
+            activityLog = new ActivityLogRenderer(outputTextBox, palette);
             outputViewport.Resize += (sender, args) => FitOutputTextBox(outputViewport);
             outputTextBox.HandleCreated += (sender, args) => FitOutputTextBox(outputViewport);
 
@@ -176,63 +180,6 @@ namespace GpgPatcher.Gui
         {
             var scrollBarWidth = outputTextBox.Width - outputTextBox.ClientSize.Width;
             outputTextBox.Size = new Size(viewport.ClientSize.Width + scrollBarWidth, viewport.ClientSize.Height);
-        }
-
-        private Control CreateFooterPanel()
-        {
-            var footerPanel = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 3,
-                RowCount = 1,
-                Margin = new Padding(0, 10, 0, 0),
-                BackColor = palette.WindowBackground,
-            };
-            footerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            footerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            footerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            footerPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-
-            statusChip = CreateChip();
-            statusChip.Anchor = AnchorStyles.Left;
-            footerPanel.Controls.Add(statusChip, 0, 0);
-
-            statusDetailLabel = new Label
-            {
-                AutoSize = false,
-                Dock = DockStyle.Fill,
-                ForeColor = palette.TextSecondary,
-                Font = palette.CreateUiFont(9.25f, FontStyle.Regular),
-                Margin = new Padding(12, 0, 12, 0),
-                Text = "Ready.",
-                TextAlign = ContentAlignment.MiddleLeft,
-            };
-            footerPanel.Controls.Add(statusDetailLabel, 1, 0);
-
-            busyProgressBar = new ProgressBar
-            {
-                Width = 150,
-                Height = 10,
-                Style = ProgressBarStyle.Marquee,
-                Visible = false,
-                MarqueeAnimationSpeed = 24,
-                Anchor = AnchorStyles.Right,
-                Margin = new Padding(0, 9, 0, 9),
-            };
-            footerPanel.Controls.Add(busyProgressBar, 2, 0);
-
-            return footerPanel;
-        }
-
-        private StatusChip CreateChip()
-        {
-            return new StatusChip
-            {
-                Font = palette.CreateUiFont(9f, FontStyle.Bold),
-                FillColor = palette.Surface,
-                BorderColor = palette.Border,
-                TextColor = palette.TextPrimary,
-            };
         }
 
         private ModernButton CreateButton(string text, ModernButtonTone tone, EventHandler onClick)

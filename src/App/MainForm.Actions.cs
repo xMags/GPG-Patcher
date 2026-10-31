@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -200,75 +199,49 @@ namespace GpgPatcher.Gui
 
         private async Task RunCapturedCommandAsync(string arguments, string busyMessage)
         {
-            SetBusy(true, busyMessage + "...");
+            ShowActivity(ActivityReportBuilder.BuildProgress(arguments, busyMessage, false));
+            SetBusy(true);
             try
             {
                 var result = await runner.RunCapturedAsync(arguments);
-                UpdateOutput(arguments, result.StandardOutput, result.StandardError, result.ExitCode);
-
-                if (string.Equals(arguments, "inspect", StringComparison.OrdinalIgnoreCase))
-                {
-                    ApplyInspectSummary(result.StandardOutput);
-                }
-                else
-                {
-                    var inspectResult = await runner.RunCapturedAsync("inspect");
-                    AppendInspectRefresh(arguments, result, inspectResult);
-                    ApplyInspectSummary(inspectResult.StandardOutput);
-                }
-
-                if (result.Success)
-                {
-                    UpdateStatusPresentation("Ready", palette.SuccessSoft, palette.Success, palette.IsDark ? Color.FromArgb(220, 252, 231) : palette.Success, busyMessage + " complete.");
-                }
-                else
-                {
-                    UpdateStatusPresentation("Attention", palette.WarningSoft, palette.Warning, palette.TextPrimary, busyMessage + " finished with errors.");
-                }
+                var inspectResult = string.Equals(arguments, "inspect", StringComparison.OrdinalIgnoreCase)
+                    ? result
+                    : await runner.RunCapturedAsync("inspect");
+                ShowActivity(ActivityReportBuilder.Build(arguments, result, inspectResult));
+                ApplyInspectSummary(inspectResult.StandardOutput);
             }
             catch (Exception ex)
             {
-                SetCommandErrorOutput(arguments, ex);
-                UpdateStatusPresentation("Error", palette.DangerSoft, palette.Danger, palette.IsDark ? Color.FromArgb(254, 226, 226) : palette.Danger, busyMessage + " failed.");
+                ShowActivity(ActivityReportBuilder.BuildFailure(arguments, ex.Message));
             }
             finally
             {
-                SetBusy(false, statusDetailLabel.Text);
+                SetBusy(false);
             }
         }
 
         private async Task RunElevatedCommandAsync(string arguments, string busyMessage)
         {
-            SetBusy(true, busyMessage + "... accept the Windows UAC prompt if it appears.");
+            ShowActivity(ActivityReportBuilder.BuildProgress(arguments, busyMessage, true));
+            SetBusy(true);
             try
             {
                 var result = await runner.RunElevatedAsync(arguments);
                 var inspectResult = await runner.RunCapturedAsync("inspect");
-                UpdateElevatedOutput(arguments, result, inspectResult);
+                ShowActivity(ActivityReportBuilder.Build(arguments, result, inspectResult));
                 ApplyInspectSummary(inspectResult.StandardOutput);
-
-                if (result.Success)
-                {
-                    UpdateStatusPresentation("Ready", palette.SuccessSoft, palette.Success, palette.IsDark ? Color.FromArgb(220, 252, 231) : palette.Success, busyMessage + " complete.");
-                }
-                else
-                {
-                    UpdateStatusPresentation("Attention", palette.WarningSoft, palette.Warning, palette.TextPrimary, busyMessage + " exited with code " + result.ExitCode + ".");
-                }
             }
             catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
             {
-                outputTextBox.Text = ">>> " + arguments + Environment.NewLine + "UAC prompt was canceled by the user.";
-                UpdateStatusPresentation("Canceled", palette.WarningSoft, palette.Warning, palette.TextPrimary, busyMessage + " canceled.");
+                ShowActivity(ActivityReportBuilder.BuildCanceled(arguments));
             }
             catch (Exception ex)
             {
-                SetCommandErrorOutput(arguments, ex);
-                UpdateStatusPresentation("Error", palette.DangerSoft, palette.Danger, palette.IsDark ? Color.FromArgb(254, 226, 226) : palette.Danger, busyMessage + " failed.");
+                ShowActivity(ActivityReportBuilder.BuildFailure(arguments, ex.Message));
             }
             finally
             {
-                SetBusy(false, statusDetailLabel.Text);
+                SetBusy(false);
             }
         }
 
@@ -319,115 +292,7 @@ namespace GpgPatcher.Gui
 
         }
 
-        private void UpdateOutput(string arguments, string stdout, string stderr, int exitCode)
-        {
-            var builder = new StringBuilder();
-            builder.AppendLine(">>> " + arguments);
-            builder.AppendLine("Exit code: " + exitCode);
-
-            if (!string.IsNullOrWhiteSpace(stdout))
-            {
-                builder.AppendLine();
-                builder.AppendLine(stdout.TrimEnd());
-            }
-
-            if (!string.IsNullOrWhiteSpace(stderr))
-            {
-                builder.AppendLine();
-                builder.AppendLine("stderr:");
-                builder.AppendLine(stderr.TrimEnd());
-            }
-
-            outputCaptionLabel.Text = "Activity log  •  " + arguments;
-            SetOutputText(builder.ToString());
-        }
-
-        private void UpdateElevatedOutput(string arguments, CommandResult result, CommandResult inspectResult)
-        {
-            var builder = new StringBuilder();
-            builder.AppendLine(">>> " + arguments);
-            builder.AppendLine("Elevated command exited with code " + result.ExitCode + ".");
-
-            if (!string.IsNullOrWhiteSpace(result.StandardOutput))
-            {
-                builder.AppendLine();
-                builder.AppendLine(result.StandardOutput.TrimEnd());
-            }
-
-            if (!string.IsNullOrWhiteSpace(result.StandardError))
-            {
-                builder.AppendLine();
-                builder.AppendLine("stderr:");
-                builder.AppendLine(result.StandardError.TrimEnd());
-            }
-
-            builder.AppendLine();
-            builder.AppendLine(">>> inspect");
-            builder.AppendLine("Exit code: " + inspectResult.ExitCode);
-
-            if (!string.IsNullOrWhiteSpace(inspectResult.StandardOutput))
-            {
-                builder.AppendLine();
-                builder.AppendLine(inspectResult.StandardOutput.TrimEnd());
-            }
-
-            if (!string.IsNullOrWhiteSpace(inspectResult.StandardError))
-            {
-                builder.AppendLine();
-                builder.AppendLine("stderr:");
-                builder.AppendLine(inspectResult.StandardError.TrimEnd());
-            }
-
-            outputCaptionLabel.Text = "Activity log  •  " + arguments;
-            SetOutputText(builder.ToString());
-        }
-
-        private void SetCommandErrorOutput(string arguments, Exception ex)
-        {
-            var builder = new StringBuilder();
-            builder.AppendLine(">>> " + arguments);
-            builder.AppendLine("The command could not be completed.");
-            builder.AppendLine();
-            builder.AppendLine(ex.Message);
-
-            outputCaptionLabel.Text = "Activity log  •  " + arguments;
-            SetOutputText(builder.ToString());
-        }
-
-        private void AppendInspectRefresh(string commandName, CommandResult commandResult, CommandResult inspectResult)
-        {
-            var builder = new StringBuilder();
-            builder.AppendLine(">>> " + commandName);
-            builder.AppendLine("Exit code: " + commandResult.ExitCode);
-
-            if (!string.IsNullOrWhiteSpace(commandResult.StandardOutput))
-            {
-                builder.AppendLine();
-                builder.AppendLine(commandResult.StandardOutput.TrimEnd());
-            }
-
-            if (!string.IsNullOrWhiteSpace(commandResult.StandardError))
-            {
-                builder.AppendLine();
-                builder.AppendLine("stderr:");
-                builder.AppendLine(commandResult.StandardError.TrimEnd());
-            }
-
-            builder.AppendLine();
-            builder.AppendLine(">>> inspect");
-            builder.AppendLine("Exit code: " + inspectResult.ExitCode);
-
-            if (!string.IsNullOrWhiteSpace(inspectResult.StandardOutput))
-            {
-                builder.AppendLine();
-                builder.AppendLine(inspectResult.StandardOutput.TrimEnd());
-            }
-
-            outputCaptionLabel.Text = "Activity log  •  " + commandName;
-            SetOutputText(builder.ToString());
-        }
-
-        private void SetBusy(bool busy, string message)
+        private void SetBusy(bool busy)
         {
             refreshButton.Enabled = !busy;
             verifyButton.Enabled = !busy;
@@ -445,23 +310,13 @@ namespace GpgPatcher.Gui
                     button.Enabled = !busy;
                 }
             }
-            busyProgressBar.Visible = busy;
             UseWaitCursor = busy;
-
-            if (busy)
-            {
-                UpdateStatusPresentation("Working", palette.AccentSoft, palette.Accent, palette.TextPrimary, message);
-            }
         }
 
-        private void UpdateStatusPresentation(string chipText, Color fill, Color border, Color textColor, string detail)
+        private void ShowActivity(ActivityReport report)
         {
-            statusChip.Text = chipText;
-            statusChip.FillColor = fill;
-            statusChip.BorderColor = border;
-            statusChip.TextColor = textColor;
-            statusChip.Invalidate();
-            statusDetailLabel.Text = detail;
+            outputCaptionLabel.Text = "Activity log  •  " + report.Title;
+            activityLog.Render(report);
         }
 
         private static string FormatState(string value)
@@ -477,13 +332,6 @@ namespace GpgPatcher.Gui
             }
 
             return "-";
-        }
-
-        private void SetOutputText(string value)
-        {
-            outputTextBox.Text = value;
-            outputTextBox.Select(0, 0);
-            outputTextBox.ScrollToCaret();
         }
     }
 }

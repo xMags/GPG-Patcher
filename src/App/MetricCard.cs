@@ -6,13 +6,15 @@ namespace GpgPatcher.Gui
 {
     internal sealed class MetricCard : ModernSurfacePanel
     {
+        public const int MildCornerRadius = 8;
+
         private readonly Label titleLabel;
         private readonly Label valueLabel;
         private readonly Label accentDotLabel;
 
         public MetricCard()
         {
-            CornerRadius = 0;
+            CornerRadius = MildCornerRadius;
             Padding = new Padding(16, 12, 16, 12);
             Height = 82;
             Dock = DockStyle.Fill;

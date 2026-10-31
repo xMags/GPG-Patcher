@@ -73,13 +73,12 @@ namespace GpgPatcher.Gui
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 2,
+                RowCount = 1,
                 BackColor = palette.WindowBackground,
                 Margin = new Padding(0),
             };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 54f));
 
             pageHost = new Panel
             {
@@ -96,16 +95,6 @@ namespace GpgPatcher.Gui
             pageHost.Controls.Add(instancesPage);
             pageHost.Controls.Add(settingsPage);
 
-            var footerHost = new Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = palette.WindowBackground,
-                Padding = new Padding(20, 0, 20, 8),
-                Margin = new Padding(0),
-            };
-            footerHost.Controls.Add(CreateFooterPanel());
-            layout.Controls.Add(footerHost, 0, 1);
-
             return layout;
         }
 
@@ -117,7 +106,7 @@ namespace GpgPatcher.Gui
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
                 RowCount = 3,
-                Padding = new Padding(24, 20, 24, 0),
+                Padding = new Padding(24, 20, 24, 20),
                 BackColor = palette.WindowBackground,
                 Margin = new Padding(0),
             };
@@ -432,12 +421,12 @@ namespace GpgPatcher.Gui
             }
             catch (Exception ex)
             {
-                UpdateStatusPresentation(
-                    "Error",
-                    palette.DangerSoft,
-                    palette.Danger,
-                    palette.TextPrimary,
-                    "Could not remember the selected resolution: " + ex.Message);
+                MessageBox.Show(
+                    this,
+                    "Could not remember the selected resolution: " + ex.Message,
+                    "GPG Patcher",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
             }
 
             ApplyResolutionSelectionPresentation();

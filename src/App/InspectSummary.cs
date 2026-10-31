@@ -148,7 +148,7 @@ namespace GpgPatcher.Gui
             setter(line.Substring(prefix.Length).Trim());
         }
 
-        private static bool IsTruthy(string value)
+        public static bool IsTruthy(string value)
         {
             return string.Equals(value, "True", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "Yes", StringComparison.OrdinalIgnoreCase)

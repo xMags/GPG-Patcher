@@ -39,9 +39,7 @@ namespace GpgPatcher.Gui
         private Label resolutionApplyMessageLabel;
         private ResolutionProfile selectedResolutionProfile;
         private ResolutionProfile appliedResolutionProfile;
-        private StatusChip statusChip;
         private Label outputCaptionLabel;
-        private Label statusDetailLabel;
         private MetricCard versionCard;
         private MetricCard compatibilityCard;
         private MetricCard patchCard;
@@ -51,7 +49,7 @@ namespace GpgPatcher.Gui
         private MetricCard guestDisplayCard;
         private MetricCard targetResolutionCard;
         private RichTextBox outputTextBox;
-        private ProgressBar busyProgressBar;
+        private ActivityLogRenderer activityLog;
 
         public MainForm()
         {
@@ -109,7 +107,6 @@ namespace GpgPatcher.Gui
             Controls.Add(windowTitleBar);
             SizeChanged += (sender, args) => windowTitleBar.SetMaximized(WindowState == FormWindowState.Maximized);
 
-            ApplyInitialChrome();
             NavigateTo(AppPage.Home);
             Shown += async (sender, args) => await RefreshInspectAsync();
         }
@@ -118,6 +115,11 @@ namespace GpgPatcher.Gui
         {
             if (disposing)
             {
+                if (activityLog != null)
+                {
+                    activityLog.Dispose();
+                }
+
                 if (brandLogo != null)
                 {
                     brandLogo.Dispose();
@@ -130,11 +132,6 @@ namespace GpgPatcher.Gui
             }
 
             base.Dispose(disposing);
-        }
-
-        private void ApplyInitialChrome()
-        {
-            UpdateStatusPresentation("Ready", palette.AccentSoft, palette.BorderStrong, palette.TextPrimary, "Refresh the current patch state or run Verify after launching the game.");
         }
     }
 }
