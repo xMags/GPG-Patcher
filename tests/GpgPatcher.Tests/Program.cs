@@ -47,7 +47,8 @@ namespace GpgPatcher.Tests
                 RunHookDefaultProcess("missing");
                 RunHookDefaultProcess("invalid");
 
-                RunTempCopyPatchTest();
+                RunTempCopyPatchTest(FindPristineServiceLib());
+                RunInstalledBuildPatchTest();
                 Console.WriteLine("PASS: " + assertions + " assertions completed.");
                 return 0;
             }
@@ -439,9 +440,31 @@ namespace GpgPatcher.Tests
             }
         }
 
-        private static void RunTempCopyPatchTest()
+        // Backups lag behind the installed build, so a Play Games update that breaks the patcher
+        // would otherwise pass here and only fail on the user's machine.
+        private static void RunInstalledBuildPatchTest()
         {
-            var sourceServiceLib = FindPristineServiceLib();
+            var serviceDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                @"Google\Play Games\current\service");
+            var installedServiceLib = Path.Combine(serviceDirectory, "ServiceLib.dll");
+            if (!File.Exists(installedServiceLib))
+            {
+                Console.WriteLine("SKIP: Play Games is not installed; installed-build patch test not run.");
+                return;
+            }
+
+            if (File.Exists(Path.Combine(serviceDirectory, GpgConstants.HookAssemblyFileName)))
+            {
+                Console.WriteLine("SKIP: installed Play Games build is patched; installed-build patch test not run.");
+                return;
+            }
+
+            RunTempCopyPatchTest(installedServiceLib);
+        }
+
+        private static void RunTempCopyPatchTest(string sourceServiceLib)
+        {
             var sourceConfig = Path.Combine(Path.GetDirectoryName(sourceServiceLib), "Service.exe.config");
             Assert(File.Exists(sourceConfig), "temporary simulation source config exists");
 

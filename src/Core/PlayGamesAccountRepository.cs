@@ -143,6 +143,8 @@ namespace GpgPatcher
     {
         private const string PersistedStateTypeName = "Google.Hpe.Service.Instances.PersistedInstancesModuleState";
         private const string EncryptionManagerTypeName = "Google.Play.Games.Encryption.EncryptionManager";
+        private const string BoringSslInteropTypeName = "Google.Play.Games.Encryption.BoringSslInterop";
+        private const string BoringSslInteropInterfaceName = "Google.Play.Games.Encryption.IBoringSslInterop";
         private readonly string localDataDirectory;
         private readonly string serviceDirectory;
 
@@ -220,7 +222,7 @@ namespace GpgPatcher
             {
                 var encryptionAssembly = Assembly.LoadFrom(Path.Combine(serviceDirectory, "Encryption.dll"));
                 var encryptionType = encryptionAssembly.GetType(EncryptionManagerTypeName, true);
-                var manager = Activator.CreateInstance(encryptionType);
+                var manager = CreateEncryptionManager(encryptionAssembly, encryptionType);
                 var loadKey = encryptionType.GetMethod("LoadEncryptionKey", new[] { typeof(string), typeof(byte[]).MakeByRefType() });
                 var decrypt = encryptionType.GetMethod("Decrypt", new[] { typeof(byte[]) });
                 if (loadKey == null || decrypt == null)
@@ -242,6 +244,29 @@ namespace GpgPatcher
             {
                 FreeLibrary(nativeLibrary);
             }
+        }
+
+        // Play Games 26.10.561 made the native interop a constructor dependency; earlier builds
+        // create it themselves through a parameterless constructor.
+        private static object CreateEncryptionManager(Assembly encryptionAssembly, Type encryptionType)
+        {
+            var parameterlessConstructor = encryptionType.GetConstructor(Type.EmptyTypes);
+            if (parameterlessConstructor != null)
+            {
+                return parameterlessConstructor.Invoke(null);
+            }
+
+            var interopInterface = encryptionAssembly.GetType(BoringSslInteropInterfaceName, false);
+            var interopType = encryptionAssembly.GetType(BoringSslInteropTypeName, false);
+            var interopConstructor = interopInterface == null
+                ? null
+                : encryptionType.GetConstructor(new[] { interopInterface });
+            if (interopType == null || interopConstructor == null)
+            {
+                throw new FriendlyException("The installed Google Play Games encryption API is not compatible with this build.");
+            }
+
+            return interopConstructor.Invoke(new[] { Activator.CreateInstance(interopType, true) });
         }
 
         private IReadOnlyList<PlayGamesAccount> Parse(byte[] plainState)

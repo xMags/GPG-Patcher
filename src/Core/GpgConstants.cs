@@ -29,6 +29,8 @@ namespace GpgPatcher
         public const string EmulatorSurfaceReadyControllerTypeName = "Google.Hpe.Service.AppSession.EmulatorSurface.EmulatorSurfaceReadyController";
         public const string ClientControllerTypeName = "Google.Hpe.Service.Client.ClientController";
         public const string AppLauncherCommandHandlerTypeName = "Google.Hpe.Service.AppLauncher.AppLauncherCommandHandler";
+        public const string LaunchTypesNamespace = "Google.Play.Games.Service.Launch";
+        public const string LegacyLaunchTypesNamespace = "Google.Hpe.Service.Launch";
         public const string LocalStateModuleTypeName = "Google.Hpe.Service.Client.LocalStateModule";
         public const string AccountsInfoUpdaterMoveNextTypeName = "Google.Hpe.Service.Client.LocalStates.AccountsInfoUpdater/<UpdateAccountsInfoAsync>d__4";
         public const string GlobalStateAccountCountMutatorTypeName = "Google.Hpe.Service.GlobalState.GlobalStateModule/<>c__DisplayClass24_0";

@@ -338,20 +338,35 @@ namespace GpgPatcher
 
         public static MethodDef FindExactLaunchMethod(ModuleDef module)
         {
-            var method = FindMethod(
-                module,
-                GpgConstants.AppLauncherCommandHandlerTypeName,
-                GpgConstants.HandleCommandMethodName,
-                "Google.Hpe.Service.Launch.HandledLaunchArgsParts",
-                new[]
-                {
-                    "Google.Hpe.Service.Launch.LaunchArgs",
-                    "Google.Hpe.Service.Launch.HandledLaunchArgsParts",
-                    "Google.Hpe.Service.Launch.IStageManager",
-                });
+            // Play Games 26.10.561 moved the launch argument types into Launch.dll under a new
+            // namespace; earlier builds still use the old one.
+            var method = TryFindExactLaunchMethod(module, GpgConstants.LaunchTypesNamespace)
+                ?? TryFindExactLaunchMethod(module, GpgConstants.LegacyLaunchTypesNamespace);
+
+            if (method == null)
+            {
+                throw new FriendlyException(
+                    "Could not find target method '" + GpgConstants.HandleCommandMethodName
+                    + "' in " + GpgConstants.AppLauncherCommandHandlerTypeName + ".");
+            }
 
             FindExactLaunchLocals(method);
             return method;
+        }
+
+        private static MethodDef TryFindExactLaunchMethod(ModuleDef module, string launchTypesNamespace)
+        {
+            return TryFindMethod(
+                module,
+                GpgConstants.AppLauncherCommandHandlerTypeName,
+                GpgConstants.HandleCommandMethodName,
+                launchTypesNamespace + ".HandledLaunchArgsParts",
+                new[]
+                {
+                    launchTypesNamespace + ".LaunchArgs",
+                    launchTypesNamespace + ".HandledLaunchArgsParts",
+                    launchTypesNamespace + ".IStageManager",
+                });
         }
 
         public static bool HasExactInstanceLaunch(MethodDef method)
