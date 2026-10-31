@@ -44,14 +44,13 @@ namespace GpgPatcher.Gui
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
-                RowCount = 2,
+                RowCount = 1,
                 BackColor = sidebar.BackColor,
                 Margin = new Padding(0, 0, 0, 12),
             };
-            brand.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 54f));
+            brand.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 50f));
             brand.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            brand.RowStyles.Add(new RowStyle(SizeType.Percent, 58f));
-            brand.RowStyles.Add(new RowStyle(SizeType.Percent, 42f));
+            brand.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             layout.Controls.Add(brand, 0, 0);
 
             var logo = new PictureBox
@@ -59,30 +58,20 @@ namespace GpgPatcher.Gui
                 Dock = DockStyle.Fill,
                 Image = brandLogo,
                 SizeMode = PictureBoxSizeMode.Zoom,
-                Margin = new Padding(0, 4, 10, 4),
+                Margin = new Padding(0, 4, 6, 4),
                 BackColor = sidebar.BackColor,
             };
             brand.Controls.Add(logo, 0, 0);
-            brand.SetRowSpan(logo, 2);
 
             brand.Controls.Add(new Label
             {
                 Dock = DockStyle.Fill,
                 Text = "GPG Patcher",
                 ForeColor = palette.TextPrimary,
-                Font = palette.CreateUiFont(11f, FontStyle.Bold),
-                TextAlign = ContentAlignment.BottomLeft,
+                Font = palette.CreateUiFont(14f, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleLeft,
                 Margin = new Padding(0),
             }, 1, 0);
-            brand.Controls.Add(new Label
-            {
-                Dock = DockStyle.Fill,
-                Text = "CONTROL CENTER",
-                ForeColor = palette.TextSecondary,
-                Font = palette.CreateUiFont(7.5f, FontStyle.Bold),
-                TextAlign = ContentAlignment.TopLeft,
-                Margin = new Padding(0, 2, 0, 0),
-            }, 1, 1);
 
             layout.Controls.Add(new Label
             {
@@ -158,9 +147,9 @@ namespace GpgPatcher.Gui
                 BackColor = palette.WindowBackground,
                 Margin = new Padding(0),
             };
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 110f));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 62f));
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 88f));
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 246f));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 196f));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             root.Controls.Add(CreateHomeHeader(), 0, 0);
             root.Controls.Add(CreateActionPanel(), 0, 1);

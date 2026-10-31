@@ -20,46 +20,9 @@ namespace GpgPatcher.Gui
             header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             header.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 
-            var heading = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 1,
-                RowCount = 3,
-                BackColor = palette.WindowBackground,
-                Margin = new Padding(2, 0, 0, 10),
-            };
-            heading.RowStyles.Add(new RowStyle(SizeType.Absolute, 42f));
-            heading.RowStyles.Add(new RowStyle(SizeType.Absolute, 24f));
-            heading.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            heading.Controls.Add(CreatePageLabel("Overview", 22f, FontStyle.Bold, palette.TextPrimary), 0, 0);
-            heading.Controls.Add(CreatePageLabel(
-                "Monitor compatibility, manage the display profile, and validate the latest game launch.",
-                9.5f,
-                FontStyle.Regular,
-                palette.TextSecondary), 0, 1);
-            var patchNote = CreatePageLabel(
-                "PATCH NOTE  •  Changes apply after the Play Games service restarts",
-                8.5f,
-                FontStyle.Bold,
-                palette.Accent);
-            patchNote.Margin = new Padding(0, 2, 0, 0);
-            heading.Controls.Add(patchNote, 0, 2);
+            var heading = CreatePageLabel("Overview", 22f, FontStyle.Bold, palette.TextPrimary);
+            heading.Margin = new Padding(2, 0, 0, 8);
             header.Controls.Add(heading, 0, 0);
-
-            var profileSummary = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 1,
-                RowCount = 2,
-                AutoSize = true,
-                BackColor = palette.WindowBackground,
-                Margin = new Padding(18, 10, 2, 22),
-            };
-            profileSummary.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
-            profileSummary.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            var profileCaption = CreatePageLabel("ACTIVE PROFILE", 8f, FontStyle.Bold, palette.TextSecondary);
-            profileCaption.TextAlign = ContentAlignment.MiddleRight;
-            profileSummary.Controls.Add(profileCaption, 0, 0);
 
             homeTargetProfileChip = CreateChip();
             homeTargetProfileChip.Text = "UHD  •  2160 × 3840";
@@ -67,8 +30,8 @@ namespace GpgPatcher.Gui
             homeTargetProfileChip.BorderColor = palette.BorderStrong;
             homeTargetProfileChip.TextColor = palette.IsDark ? palette.TextPrimary : palette.AccentPressed;
             homeTargetProfileChip.Anchor = AnchorStyles.Right;
-            profileSummary.Controls.Add(homeTargetProfileChip, 0, 1);
-            header.Controls.Add(profileSummary, 1, 0);
+            homeTargetProfileChip.Margin = new Padding(18, 0, 2, 8);
+            header.Controls.Add(homeTargetProfileChip, 1, 0);
 
             return header;
         }
@@ -86,24 +49,9 @@ namespace GpgPatcher.Gui
                 BorderColor = palette.Border,
             };
 
-            var actionLayout = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 2,
-                RowCount = 1,
-                BackColor = actionPanel.FillColor,
-                Margin = new Padding(0),
-            };
-            actionLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120f));
-            actionLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            actionLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            actionPanel.Controls.Add(actionLayout);
-
-            actionLayout.Controls.Add(CreatePageLabel("Quick actions", 10f, FontStyle.Bold, palette.TextPrimary), 0, 0);
-
             var maintenanceRow = CreateButtonRow(actionPanel.FillColor, 0, 0, 0, 0);
             maintenanceRow.Padding = new Padding(0, 5, 0, 0);
-            actionLayout.Controls.Add(maintenanceRow, 1, 0);
+            actionPanel.Controls.Add(maintenanceRow);
 
             patchButton = CreateButton("Patch", ModernButtonTone.Primary, async (sender, args) => await PatchAsync());
             refreshButton = CreateButton("Refresh", ModernButtonTone.Secondary, async (sender, args) => await RefreshInspectAsync());
@@ -144,7 +92,7 @@ namespace GpgPatcher.Gui
             {
                 Dock = DockStyle.Top,
                 AutoSize = false,
-                Height = 230,
+                Height = 180,
                 ColumnCount = 4,
                 RowCount = 2,
                 Margin = new Padding(0, 0, 0, 16),
@@ -154,8 +102,8 @@ namespace GpgPatcher.Gui
             metricsGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
             metricsGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
             metricsGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
-            metricsGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 115f));
-            metricsGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 115f));
+            metricsGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 90f));
+            metricsGrid.RowStyles.Add(new RowStyle(SizeType.Absolute, 90f));
 
             versionCard = CreateMetricCard("Version");
             compatibilityCard = CreateMetricCard("Compatibility");
@@ -204,13 +152,12 @@ namespace GpgPatcher.Gui
             var outputHeaderPanel = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                ColumnCount = 2,
+                ColumnCount = 1,
                 RowCount = 1,
                 BackColor = outputPanel.FillColor,
                 Margin = new Padding(0),
             };
             outputHeaderPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            outputHeaderPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             outputHeaderPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             outputLayout.Controls.Add(outputHeaderPanel, 0, 0);
 
@@ -224,18 +171,6 @@ namespace GpgPatcher.Gui
                 TextAlign = ContentAlignment.MiddleLeft,
             };
             outputHeaderPanel.Controls.Add(outputCaptionLabel, 0, 0);
-
-            var outputHintLabel = new Label
-            {
-                AutoSize = true,
-                Dock = DockStyle.None,
-                Anchor = AnchorStyles.Right,
-                ForeColor = palette.TextSecondary,
-                Font = palette.CreateUiFont(8.75f, FontStyle.Regular),
-                Text = "Latest maintenance transcript",
-                TextAlign = ContentAlignment.MiddleRight,
-            };
-            outputHeaderPanel.Controls.Add(outputHintLabel, 1, 0);
 
             var codePanel = new ModernSurfacePanel
             {

@@ -93,7 +93,7 @@ namespace GpgPatcher.Gui
                 RowCount = 1,
                 BackColor = palette.WindowBackground,
             };
-            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 224f));
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 244f));
             root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             Controls.Add(root);

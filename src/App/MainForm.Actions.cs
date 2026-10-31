@@ -278,37 +278,26 @@ namespace GpgPatcher.Gui
             exactInstanceLaunchReady = summary.HasExactInstanceLaunch;
 
             versionCard.ValueText = summary.Version ?? "-";
-            versionCard.DetailText = summary.IsCompatible
-                ? "Compatibility checks passed"
-                : (string.IsNullOrWhiteSpace(summary.CompatibilityMessage) ? "Compatibility check failed" : summary.CompatibilityMessage);
             versionCard.ApplyTheme(palette, summary.IsCompatible);
 
             compatibilityCard.ValueText = summary.IsCompatible ? "Compatible" : "Incompatible";
-            compatibilityCard.DetailText = summary.IsCompatible
-                ? "Safe to patch this build"
-                : (string.IsNullOrWhiteSpace(summary.CompatibilityState) ? "Patch blocked by compatibility checks" : summary.CompatibilityState);
             compatibilityCard.ApplyTheme(palette, summary.IsCompatible);
 
             patchCard.ValueText = summary.IsPatched ? "Patched" : "Not patched";
-            patchCard.DetailText = summary.IsPatched
-                ? "All managed hooks ready"
-                : "Managed hooks incomplete";
             patchCard.ApplyTheme(palette, summary.IsPatched);
 
             backupCard.ValueText = summary.HasBackup ? "Available" : "Missing";
-            backupCard.DetailText = summary.HasPhenotypeOverride ? "Backup ready; fallback on" : "Restore backup ready";
+            backupCard.TitleText = summary.HasPhenotypeOverride ? "Backup  •  fallback on" : "Backup";
             backupCard.ApplyTheme(palette, summary.HasBackup);
 
             launchSizeCard.ValueText = summary.DisplaySize ?? "-";
-            launchSizeCard.DetailText = "Latest launch size";
             launchSizeCard.ApplyTheme(palette, summary.IsPatched);
 
             densityCard.ValueText = summary.Density ?? "-";
-            densityCard.DetailText = "Scaled for target height";
             densityCard.ApplyTheme(palette, false);
 
             guestDisplayCard.ValueText = summary.GuestDisplay ?? "-";
-            guestDisplayCard.DetailText = "Serial display  •  virtual " + FormatState(summary.VirtualGuestDisplayHook);
+            guestDisplayCard.TitleText = "Guest  •  virtual " + FormatState(summary.VirtualGuestDisplayHook);
             guestDisplayCard.ApplyTheme(palette, summary.IsPatched);
 
             ResolutionProfile inspectedProfile;
@@ -318,7 +307,6 @@ namespace GpgPatcher.Gui
             }
 
             targetResolutionCard.ValueText = appliedResolutionProfile.Value;
-            targetResolutionCard.DetailText = appliedResolutionProfile.Name + " profile currently applied";
             targetResolutionCard.ApplyTheme(palette, summary.IsPatched);
             homeTargetProfileChip.Text = appliedResolutionProfile.Name
                 + "  •  "
