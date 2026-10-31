@@ -55,8 +55,6 @@ namespace GpgPatcher.Gui
 
             accountsRefreshInProgress = true;
             refreshAccountsButton.Enabled = false;
-            accountCountChip.Text = "Loading";
-            accountsStateLabel.Text = "READING PLAY GAMES ACCOUNTS";
             ShowAccountsMessage(
                 "Refreshing accounts",
                 "Decrypting the local Play Games instance index for this Windows user.",
@@ -69,11 +67,6 @@ namespace GpgPatcher.Gui
             }
             catch (Exception ex)
             {
-                accountCountChip.Text = "Unavailable";
-                accountCountChip.FillColor = palette.DangerSoft;
-                accountCountChip.BorderColor = palette.Danger;
-                accountCountChip.Invalidate();
-                accountsStateLabel.Text = "ACCOUNT DATA UNAVAILABLE";
                 ShowAccountsMessage(
                     "Accounts could not be loaded",
                     ex.Message,
@@ -91,14 +84,9 @@ namespace GpgPatcher.Gui
         {
             DisposeAccountCards();
             var count = accounts == null ? 0 : accounts.Count;
-            accountCountChip.Text = count + (count == 1 ? " account" : " accounts");
-            accountCountChip.FillColor = count == 0 ? palette.WarningSoft : palette.AccentSoft;
-            accountCountChip.BorderColor = count == 0 ? palette.Warning : palette.BorderStrong;
-            accountCountChip.Invalidate();
 
             if (count == 0)
             {
-                accountsStateLabel.Text = "NO ACCOUNTS FOUND";
                 ShowAccountsMessage(
                     "No Play Games accounts yet",
                     "Use Add Account, finish the Google sign-in flow, then choose Refresh Accounts.",
@@ -107,9 +95,6 @@ namespace GpgPatcher.Gui
                 return;
             }
 
-            accountsStateLabel.Text = exactInstanceLaunchReady
-                ? count + " ACCOUNTS  •  EXACT LAUNCH READY"
-                : count + " ACCOUNTS  •  PATCH REQUIRED FOR EXACT LAUNCH";
             foreach (var account in accounts)
             {
                 var card = new AccountCard(palette, account, exactInstanceLaunchReady);
@@ -168,12 +153,17 @@ namespace GpgPatcher.Gui
                 return;
             }
 
+            var scale = DeviceDpi / 96f;
             var metrics = AccountGridLayout.Calculate(
                 accountsFlowPanel.ClientSize.Width,
-                DeviceDpi / 96f);
-            foreach (var card in cards)
+                scale,
+                accountsFlowPanel.VerticalScroll.Visible);
+            var gap = (int)Math.Ceiling(AccountGridLayout.GapPixels * scale);
+            for (var index = 0; index < cards.Count; index++)
             {
-                card.Width = metrics.CardWidth;
+                var endsRow = (index + 1) % metrics.Columns == 0;
+                cards[index].Width = metrics.CardWidth;
+                cards[index].Margin = new Padding(0, 0, endsRow ? 0 : gap, gap);
             }
         }
 

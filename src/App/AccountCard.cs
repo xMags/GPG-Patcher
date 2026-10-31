@@ -13,12 +13,12 @@ namespace GpgPatcher.Gui
         public AccountCard(ThemePalette palette, PlayGamesAccount account, bool exactLaunchReady)
         {
             this.account = account;
-            CornerRadius = 20;
-            FillColor = palette.SurfaceTint;
+            CornerRadius = MetricCard.MildCornerRadius;
+            FillColor = palette.Surface;
             BorderColor = account.IsForeground ? palette.Success : palette.Border;
             Padding = new Padding(16);
             Margin = new Padding(0, 0, 12, 12);
-            Height = 176;
+            Height = 142;
 
             var layout = new TableLayoutPanel
             {
@@ -29,52 +29,10 @@ namespace GpgPatcher.Gui
                 Margin = new Padding(0),
             };
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 44f));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42f));
             Controls.Add(layout);
 
             var identity = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 3,
-                RowCount = 1,
-                BackColor = FillColor,
-                Margin = new Padding(0),
-            };
-            identity.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 70f));
-            identity.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            identity.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            layout.Controls.Add(identity, 0, 0);
-
-            identity.Controls.Add(new AccountAvatar(palette, account), 0, 0);
-
-            var labels = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 1,
-                RowCount = 2,
-                BackColor = FillColor,
-                Margin = new Padding(0, 6, 8, 2),
-            };
-            labels.RowStyles.Add(new RowStyle(SizeType.Percent, 55f));
-            labels.RowStyles.Add(new RowStyle(SizeType.Percent, 45f));
-            labels.Controls.Add(CreateLabel(account.GamerTag, palette.CreateUiFont(11f, FontStyle.Bold), palette.TextPrimary), 0, 0);
-            labels.Controls.Add(CreateLabel(account.MaskedEmail, palette.CreateUiFont(8.5f, FontStyle.Regular), palette.TextSecondary), 0, 1);
-            identity.Controls.Add(labels, 1, 0);
-
-            var state = new StatusChip
-            {
-                Text = account.IsForeground ? "Active" : "Ready",
-                Font = palette.CreateUiFont(8f, FontStyle.Bold),
-                FillColor = account.IsForeground ? palette.SuccessSoft : palette.Surface,
-                BorderColor = account.IsForeground ? palette.Success : palette.Border,
-                TextColor = account.IsForeground
-                    ? (palette.IsDark ? Color.FromArgb(220, 252, 231) : palette.Success)
-                    : palette.TextSecondary,
-                Margin = new Padding(4, 8, 0, 0),
-            };
-            identity.Controls.Add(state, 2, 0);
-
-            var action = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
@@ -82,31 +40,52 @@ namespace GpgPatcher.Gui
                 BackColor = FillColor,
                 Margin = new Padding(0),
             };
-            action.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            action.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 108f));
-            layout.Controls.Add(action, 0, 1);
+            identity.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 62f));
+            identity.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+            identity.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+            layout.Controls.Add(identity, 0, 0);
+
+            identity.Controls.Add(new AccountAvatar(palette, account), 0, 0);
+
+            var labels = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 2,
+                BackColor = FillColor,
+                Margin = new Padding(0, 0, 0, 8),
+            };
+            labels.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+            labels.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            labels.RowStyles.Add(new RowStyle(SizeType.Absolute, 30f));
+            labels.RowStyles.Add(new RowStyle(SizeType.Absolute, 22f));
+            labels.Controls.Add(CreateLabel(account.GamerTag, palette.CreateUiFont(11f, FontStyle.Bold), palette.TextPrimary), 0, 0);
+            labels.Controls.Add(CreateLabel(account.MaskedEmail, palette.CreateUiFont(8.5f, FontStyle.Regular), palette.TextSecondary), 0, 1);
+            if (account.IsForeground)
+            {
+                var active = CreateLabel("Active", palette.CreateUiFont(8.5f, FontStyle.Bold), palette.Success);
+                active.AutoSize = true;
+                active.Dock = DockStyle.None;
+                active.Anchor = AnchorStyles.Right;
+                labels.Controls.Add(active, 1, 0);
+            }
+
+            identity.Controls.Add(labels, 1, 0);
 
             var canLaunch = exactLaunchReady && !string.IsNullOrWhiteSpace(account.AndroidAppLibraryId);
-            var note = canLaunch
-                ? "Exact instance  •  " + ShortId(account.InstanceId)
-                : exactLaunchReady
-                    ? "Profile is still preparing its game library"
-                    : "Patch required for exact launch";
-            action.Controls.Add(CreateLabel(note, palette.CreateUiFont(8f, FontStyle.Regular), palette.TextSecondary), 0, 0);
-
             var launch = new ModernButton
             {
-                Text = "Launch",
+                Text = canLaunch ? "Launch" : exactLaunchReady ? "Preparing" : "Patch required",
                 Tone = ModernButtonTone.Primary,
                 Palette = palette,
-                CornerRadius = 13,
+                CornerRadius = MetricCard.MildCornerRadius,
                 Dock = DockStyle.Fill,
                 Enabled = canLaunch,
                 Font = palette.CreateUiFont(9f, FontStyle.Bold),
-                Margin = new Padding(8, 2, 0, 2),
+                Margin = new Padding(0),
             };
             launch.Click += (sender, args) => OnLaunchRequested();
-            action.Controls.Add(launch, 1, 0);
+            layout.Controls.Add(launch, 0, 1);
         }
 
         public event EventHandler LaunchRequested;
@@ -138,13 +117,6 @@ namespace GpgPatcher.Gui
                 Margin = new Padding(0),
             };
         }
-
-        private static string ShortId(string value)
-        {
-            return string.IsNullOrWhiteSpace(value) || value.Length <= 8
-                ? value
-                : value.Substring(0, 8);
-        }
     }
 
     internal sealed class AccountAvatar : Control
@@ -159,8 +131,8 @@ namespace GpgPatcher.Gui
             this.palette = palette;
             initials = account.Initials;
             initialsFont = palette.CreateUiFont(11f, FontStyle.Bold);
-            Size = new Size(58, 58);
-            Margin = new Padding(0, 7, 12, 0);
+            Size = new Size(50, 50);
+            Margin = new Padding(0, 0, 12, 8);
             DoubleBuffered = true;
             image = TryLoadImage(account.AvatarPath);
         }

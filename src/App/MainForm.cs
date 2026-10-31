@@ -26,8 +26,6 @@ namespace GpgPatcher.Gui
         private ModernButton addAccountButton;
         private ModernButton refreshAccountsButton;
         private FlowLayoutPanel accountsFlowPanel;
-        private StatusChip accountCountChip;
-        private Label accountsStateLabel;
         private bool exactInstanceLaunchReady;
         private bool accountsRefreshInProgress;
         private ModernButton restoreButton;

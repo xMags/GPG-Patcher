@@ -8,16 +8,6 @@ namespace GpgPatcher.Gui
     {
         private Control CreateActionPanel()
         {
-            var maintenanceRow = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 5,
-                RowCount = 1,
-                BackColor = palette.WindowBackground,
-                Margin = new Padding(0, 0, 0, 12),
-            };
-            maintenanceRow.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-
             patchButton = CreateButton("Patch", ModernButtonTone.Primary, async (sender, args) => await PatchAsync());
             refreshButton = CreateButton("Refresh", ModernButtonTone.Secondary, async (sender, args) => await RefreshInspectAsync());
             verifyButton = CreateButton("Verify", ModernButtonTone.Secondary, async (sender, args) => await VerifyAsync());
@@ -30,22 +20,65 @@ namespace GpgPatcher.Gui
             diagnoseViewportButton.IconGlyph = "\uE9D9";
             restoreButton.IconGlyph = "\uE777";
 
-            var actionButtons = new[] { patchButton, refreshButton, verifyButton, diagnoseViewportButton, restoreButton };
-            for (var column = 0; column < actionButtons.Length; column++)
+return CreateToolbar(patchButton, refreshButton, verifyButton, diagnoseViewportButton, restoreButton);
+        }
+
+        private Control CreateToolbar(params ModernButton[] buttons)
+        {
+            var toolbar = new TableLayoutPanel
             {
-                var button = actionButtons[column];
-                maintenanceRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
-                button.CenterContent = true;
-                button.CornerRadius = MetricCard.MildCornerRadius;
-                button.RoundedSides = column == 0
-                    ? RoundedSides.Left
-                    : column == actionButtons.Length - 1 ? RoundedSides.Right : RoundedSides.None;
-                button.Dock = DockStyle.Fill;
-                button.Margin = new Padding(0);
-                maintenanceRow.Controls.Add(button, column, 0);
+                Dock = DockStyle.Fill,
+                ColumnCount = buttons.Length,
+                RowCount = 1,
+                BackColor = palette.WindowBackground,
+                Margin = new Padding(0, 0, 0, 12),
+            };
+            toolbar.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+
+            for (var column = 0; column < buttons.Length; column++)
+            {
+                toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / buttons.Length));
+                StyleToolbarButton(buttons[column], column, buttons.Length);
+                toolbar.Controls.Add(buttons[column], column, 0);
             }
 
-            return maintenanceRow;
+            return toolbar;
+        }
+
+        // Keeps each button at its preset width and pins the group to the right edge.
+        private Control CreateCompactToolbar(params ModernButton[] buttons)
+        {
+            var toolbar = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = buttons.Length + 1,
+                RowCount = 1,
+                BackColor = palette.WindowBackground,
+                Margin = new Padding(0, 0, 0, 12),
+            };
+            toolbar.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+            toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+
+            for (var index = 0; index < buttons.Length; index++)
+            {
+                toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, buttons[index].Width));
+                StyleToolbarButton(buttons[index], index, buttons.Length);
+                buttons[index].Font = palette.CreateUiFont(9f, FontStyle.Bold);
+                toolbar.Controls.Add(buttons[index], index + 1, 0);
+            }
+
+            return toolbar;
+        }
+
+        private static void StyleToolbarButton(ModernButton button, int position, int count)
+        {
+            button.CenterContent = true;
+            button.CornerRadius = MetricCard.MildCornerRadius;
+            button.RoundedSides = position == 0
+                ? RoundedSides.Left
+                : position == count - 1 ? RoundedSides.Right : RoundedSides.None;
+            button.Dock = DockStyle.Fill;
+            button.Margin = new Padding(0);
         }
 
         private Control CreateMetricsGrid()

@@ -11,11 +11,13 @@ namespace GpgPatcher
 
     internal static class AccountGridLayout
     {
-        public static AccountGridMetrics Calculate(int clientWidth, float dpiScale)
+        public const int GapPixels = 12;
+
+        public static AccountGridMetrics Calculate(int clientWidth, float dpiScale, bool reserveScrollbar = true)
         {
             var scale = dpiScale <= 0f ? 1f : dpiScale;
-            var scrollbarAllowance = (int)Math.Ceiling(22f * scale);
-            var gap = (int)Math.Ceiling(12f * scale);
+            var scrollbarAllowance = reserveScrollbar ? (int)Math.Ceiling(22f * scale) : 0;
+            var gap = (int)Math.Ceiling(GapPixels * scale);
             var usable = Math.Max(0, clientWidth - scrollbarAllowance);
             var columns = usable >= (int)Math.Ceiling(900f * scale) ? 3 : 2;
             var minimumCardWidth = (int)Math.Ceiling(280f * scale);

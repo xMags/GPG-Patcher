@@ -123,85 +123,26 @@ namespace GpgPatcher.Gui
         private Control CreateInstancesPage()
         {
             var page = CreatePageContainer();
-            var root = CreateSecondaryPageLayout("Accounts", "Launch Whiteout Survival directly into an exact Google Play Games account.");
-            page.Controls.Add(root);
-
-            var instanceCard = new ModernSurfacePanel
-            {
-                Dock = DockStyle.Fill,
-                CornerRadius = 24,
-                FillColor = palette.Surface,
-                BorderColor = palette.Border,
-                Padding = new Padding(22),
-                Margin = new Padding(0),
-            };
-            root.Controls.Add(instanceCard, 0, 1);
-
-            var cardLayout = new TableLayoutPanel
+            var root = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 3,
-                BackColor = instanceCard.FillColor,
+                RowCount = 2,
+                Padding = new Padding(24, 20, 24, 20),
+                BackColor = palette.WindowBackground,
                 Margin = new Padding(0),
             };
-            cardLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 78f));
-            cardLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34f));
-            cardLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            instanceCard.Controls.Add(cardLayout);
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 58f));
+            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+            page.Controls.Add(root);
 
-            var cardHeader = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 3,
-                RowCount = 2,
-                BackColor = instanceCard.FillColor,
-                Margin = new Padding(0, 0, 0, 12),
-            };
-            cardHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            cardHeader.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            cardHeader.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            cardHeader.RowStyles.Add(new RowStyle(SizeType.Percent, 55f));
-            cardHeader.RowStyles.Add(new RowStyle(SizeType.Percent, 45f));
-            cardLayout.Controls.Add(cardHeader, 0, 0);
-
-            cardHeader.Controls.Add(CreatePageLabel("Play Games accounts", 13f, FontStyle.Bold, palette.TextPrimary), 0, 0);
-            cardHeader.Controls.Add(CreatePageLabel("Profiles are read locally from Google Play Games and emails stay masked.", 9f, FontStyle.Regular, palette.TextSecondary), 0, 1);
-
-            accountCountChip = new StatusChip
-            {
-                Text = "Loading",
-                Font = palette.CreateUiFont(8f, FontStyle.Bold),
-                FillColor = palette.AccentSoft,
-                BorderColor = palette.BorderStrong,
-                TextColor = palette.TextPrimary,
-                Margin = new Padding(12, 10, 12, 0),
-            };
-            cardHeader.Controls.Add(accountCountChip, 1, 0);
-            cardHeader.SetRowSpan(accountCountChip, 2);
-
-            var actions = new FlowLayoutPanel
-            {
-                AutoSize = true,
-                AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                WrapContents = false,
-                FlowDirection = FlowDirection.LeftToRight,
-                BackColor = instanceCard.FillColor,
-                Margin = new Padding(0, 4, 0, 0),
-            };
-            refreshAccountsButton = CreateButton("Refresh Accounts", ModernButtonTone.Secondary, async (sender, args) => await RefreshAccountsAsync());
-            refreshAccountsButton.Size = new Size(148, 44);
-            refreshAccountsButton.Margin = new Padding(0, 0, 8, 0);
-            actions.Controls.Add(refreshAccountsButton);
             addAccountButton = CreateButton("Add Account", ModernButtonTone.Primary, async (sender, args) => await AddAccountAsync());
-            addAccountButton.Size = new Size(126, 44);
-            addAccountButton.Margin = new Padding(0);
-            actions.Controls.Add(addAccountButton);
-            cardHeader.Controls.Add(actions, 2, 0);
-            cardHeader.SetRowSpan(actions, 2);
-
-            accountsStateLabel = CreatePageLabel("LOADING ACCOUNTS", 8f, FontStyle.Bold, palette.TextSecondary);
-            cardLayout.Controls.Add(accountsStateLabel, 0, 1);
+            addAccountButton.IconGlyph = "\uE710";
+            addAccountButton.Width = 176;
+            refreshAccountsButton = CreateButton("Refresh", ModernButtonTone.Secondary, async (sender, args) => await RefreshAccountsAsync());
+            refreshAccountsButton.IconGlyph = "\uE72C";
+            refreshAccountsButton.Width = 136;
+            root.Controls.Add(CreateCompactToolbar(addAccountButton, refreshAccountsButton), 0, 0);
 
             accountsFlowPanel = new FlowLayoutPanel
             {
@@ -209,12 +150,11 @@ namespace GpgPatcher.Gui
                 AutoScroll = true,
                 WrapContents = true,
                 FlowDirection = FlowDirection.LeftToRight,
-                BackColor = instanceCard.FillColor,
-                Padding = new Padding(0, 8, 0, 0),
+                BackColor = palette.WindowBackground,
                 Margin = new Padding(0),
             };
             accountsFlowPanel.ClientSizeChanged += (sender, args) => ResizeAccountCards();
-            cardLayout.Controls.Add(accountsFlowPanel, 0, 2);
+            root.Controls.Add(accountsFlowPanel, 0, 1);
 
             return page;
         }
@@ -222,31 +162,29 @@ namespace GpgPatcher.Gui
         private Control CreateSettingsPage()
         {
             var page = CreatePageContainer();
-            var root = CreateSecondaryPageLayout("Settings", "Choose the portrait resolution that the next Patch will apply.");
-            page.Controls.Add(root);
-
             var settingsContent = new Panel
             {
                 Dock = DockStyle.Fill,
                 AutoScroll = true,
                 BackColor = palette.WindowBackground,
+                Padding = new Padding(24, 20, 24, 20),
                 Margin = new Padding(0),
             };
-            root.Controls.Add(settingsContent, 0, 1);
+            page.Controls.Add(settingsContent);
 
             var settingsStack = new TableLayoutPanel
             {
                 Dock = DockStyle.Top,
-                Height = 404,
+                Height = 244,
                 ColumnCount = 1,
                 RowCount = 3,
                 BackColor = palette.WindowBackground,
                 Margin = new Padding(0),
             };
             settingsStack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            settingsStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 216f));
+            settingsStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 150f));
             settingsStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 12f));
-            settingsStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 176f));
+            settingsStack.RowStyles.Add(new RowStyle(SizeType.Absolute, 82f));
             settingsContent.Controls.Add(settingsStack);
 
             settingsStack.Controls.Add(CreateResolutionProfileCard(), 0, 0);
@@ -261,10 +199,10 @@ namespace GpgPatcher.Gui
             var resolutionCard = new ModernSurfacePanel
             {
                 Dock = DockStyle.Fill,
-                CornerRadius = 22,
+                CornerRadius = MetricCard.MildCornerRadius,
                 FillColor = palette.Surface,
                 BorderColor = palette.Border,
-                Padding = new Padding(24, 16, 24, 16),
+                Padding = new Padding(24, 14, 24, 14),
                 Margin = new Padding(0),
             };
 
@@ -272,24 +210,20 @@ namespace GpgPatcher.Gui
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 5,
+                RowCount = 3,
                 BackColor = resolutionCard.FillColor,
                 Margin = new Padding(0),
             };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 20f));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30f));
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30f));
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 56f));
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             resolutionCard.Controls.Add(layout);
 
-            layout.Controls.Add(CreatePageLabel("TARGET DISPLAY", 8f, FontStyle.Bold, palette.TextSecondary), 0, 0);
-            layout.Controls.Add(CreatePageLabel("Portrait resolution", 12f, FontStyle.Bold, palette.TextPrimary), 0, 1);
-            layout.Controls.Add(CreatePageLabel("Select the display size used by every managed display hook.", 9f, FontStyle.Regular, palette.TextSecondary), 0, 2);
+            layout.Controls.Add(CreatePageLabel("Portrait resolution", 12f, FontStyle.Bold, palette.TextPrimary), 0, 0);
 
             var buttonRow = CreateButtonRow(resolutionCard.FillColor, 0, 4, 0, 4);
-            layout.Controls.Add(buttonRow, 0, 3);
+            layout.Controls.Add(buttonRow, 0, 1);
 
             var profiles = ResolutionProfiles.All;
             resolutionProfileButtons = new ModernButton[profiles.Count];
@@ -302,6 +236,7 @@ namespace GpgPatcher.Gui
                     (sender, args) => SelectResolutionProfile(profile));
                 button.Width = 188;
                 button.Height = 44;
+                button.CornerRadius = MetricCard.MildCornerRadius;
                 button.AccessibleName = profile.Name + " resolution " + profile.Value;
                 button.Tag = profile.Value;
                 resolutionProfileButtons[index] = button;
@@ -318,7 +253,7 @@ namespace GpgPatcher.Gui
             };
             stateLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             stateLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            layout.Controls.Add(stateLayout, 0, 4);
+            layout.Controls.Add(stateLayout, 0, 2);
 
             appliedResolutionLabel = CreatePageLabel(string.Empty, 8.5f, FontStyle.Bold, palette.Accent);
             appliedResolutionLabel.AutoSize = true;
@@ -337,10 +272,10 @@ namespace GpgPatcher.Gui
             var fallbackCard = new ModernSurfacePanel
             {
                 Dock = DockStyle.Fill,
-                CornerRadius = 22,
+                CornerRadius = MetricCard.MildCornerRadius,
                 FillColor = palette.Surface,
                 BorderColor = palette.Border,
-                Padding = new Padding(24, 20, 24, 20),
+                Padding = new Padding(24, 12, 24, 12),
                 Margin = new Padding(0),
             };
 
@@ -348,46 +283,20 @@ namespace GpgPatcher.Gui
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 3,
-                RowCount = 4,
+                RowCount = 2,
                 BackColor = fallbackCard.FillColor,
                 Margin = new Padding(0),
             };
-            settingLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58f));
             settingLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            settingLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 116f));
-            settingLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 24f));
-            settingLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34f));
-            settingLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42f));
-            settingLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+            settingLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 70f));
+            settingLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80f));
+            settingLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 55f));
+            settingLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 45f));
             fallbackCard.Controls.Add(settingLayout);
 
-            var settingIcon = new Label
-            {
-                Dock = DockStyle.Fill,
-                Text = "\uE713",
-                ForeColor = palette.Accent,
-                Font = new Font("Segoe Fluent Icons", 18f, FontStyle.Regular, GraphicsUnit.Point),
-                TextAlign = ContentAlignment.MiddleLeft,
-                Margin = new Padding(0, 0, 10, 0),
-            };
-            settingLayout.Controls.Add(settingIcon, 0, 0);
-            settingLayout.SetRowSpan(settingIcon, 4);
-
-            settingLayout.Controls.Add(CreatePageLabel("PATCH BEHAVIOR", 8f, FontStyle.Bold, palette.TextSecondary), 1, 0);
-            settingLayout.Controls.Add(CreatePageLabel("Phenotype fallback", 12f, FontStyle.Bold, palette.TextPrimary), 1, 1);
-            settingLayout.Controls.Add(CreatePageLabel("Adds the optional phenotype override when Patch runs. Leave this off unless the normal host patch stops exposing UHD mode.", 9f, FontStyle.Regular, palette.TextSecondary), 1, 2);
-            phenotypeFallbackNoteLabel = CreatePageLabel("Changing this switch does not modify files until you run Patch.", 8.5f, FontStyle.Regular, palette.Warning);
-            settingLayout.Controls.Add(phenotypeFallbackNoteLabel, 1, 3);
-
-            phenotypeFallbackToggle = new ToggleSwitch
-            {
-                Palette = palette,
-                AccessibleName = "Phenotype fallback",
-                Anchor = AnchorStyles.None,
-                Margin = new Padding(0, 16, 0, 0),
-            };
-            settingLayout.Controls.Add(phenotypeFallbackToggle, 2, 0);
-            settingLayout.SetRowSpan(phenotypeFallbackToggle, 3);
+            settingLayout.Controls.Add(CreatePageLabel("UHD fallback", 12f, FontStyle.Bold, palette.TextPrimary), 0, 0);
+            phenotypeFallbackNoteLabel = CreatePageLabel(string.Empty, 9f, FontStyle.Regular, palette.TextSecondary);
+            settingLayout.Controls.Add(phenotypeFallbackNoteLabel, 0, 1);
 
             phenotypeFallbackStateLabel = new Label
             {
@@ -395,10 +304,21 @@ namespace GpgPatcher.Gui
                 Text = "Off",
                 ForeColor = palette.TextSecondary,
                 Font = palette.CreateUiFont(8.5f, FontStyle.Bold),
-                TextAlign = ContentAlignment.TopCenter,
+                TextAlign = ContentAlignment.MiddleRight,
+                Margin = new Padding(0, 0, 10, 0),
+            };
+            settingLayout.Controls.Add(phenotypeFallbackStateLabel, 1, 0);
+            settingLayout.SetRowSpan(phenotypeFallbackStateLabel, 2);
+
+            phenotypeFallbackToggle = new ToggleSwitch
+            {
+                Palette = palette,
+                AccessibleName = "UHD fallback",
+                Anchor = AnchorStyles.Right,
                 Margin = new Padding(0),
             };
-            settingLayout.Controls.Add(phenotypeFallbackStateLabel, 2, 3);
+            settingLayout.Controls.Add(phenotypeFallbackToggle, 2, 0);
+            settingLayout.SetRowSpan(phenotypeFallbackToggle, 2);
             phenotypeFallbackToggle.CheckedChanged += (sender, args) =>
             {
                 ApplyPhenotypeAvailabilityPresentation();
@@ -459,8 +379,8 @@ namespace GpgPatcher.Gui
                     appliedResolutionProfile.Value,
                     StringComparison.Ordinal);
                 resolutionApplyMessageLabel.Text = matchesApplied
-                    ? "This profile is currently active."
-                    : selectedResolutionProfile.Name + " is selected • Applies on next Patch";
+                    ? string.Empty
+                    : selectedResolutionProfile.Name + " applies on next Patch";
                 resolutionApplyMessageLabel.ForeColor = matchesApplied ? palette.TextSecondary : palette.Warning;
             }
 
@@ -494,39 +414,9 @@ namespace GpgPatcher.Gui
             if (phenotypeFallbackNoteLabel != null)
             {
                 phenotypeFallbackNoteLabel.Text = available
-                    ? "Changing this switch does not modify files until you run Patch."
-                    : "Disabled for FHD and QHD because this Google setting specifically enables 4K UHD.";
+                    ? "Only if UHD stops working. Applies on next Patch."
+                    : "UHD only.";
             }
-        }
-
-        private TableLayoutPanel CreateSecondaryPageLayout(string title, string subtitle)
-        {
-            var root = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 1,
-                RowCount = 2,
-                Padding = new Padding(28, 28, 28, 18),
-                BackColor = palette.WindowBackground,
-                Margin = new Padding(0),
-            };
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 92f));
-            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-
-            var heading = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 1,
-                RowCount = 2,
-                BackColor = palette.WindowBackground,
-                Margin = new Padding(0, 0, 0, 18),
-            };
-            heading.RowStyles.Add(new RowStyle(SizeType.Absolute, 42f));
-            heading.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            heading.Controls.Add(CreatePageLabel(title, 22f, FontStyle.Bold, palette.TextPrimary), 0, 0);
-            heading.Controls.Add(CreatePageLabel(subtitle, 10f, FontStyle.Regular, palette.TextSecondary), 0, 1);
-            root.Controls.Add(heading, 0, 0);
-            return root;
         }
 
         private Panel CreatePageContainer()

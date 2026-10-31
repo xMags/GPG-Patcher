@@ -142,12 +142,6 @@ namespace GpgPatcher.Gui
                     colors.Text,
                     TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.SingleLine);
             }
-
-            if (Focused)
-            {
-                var focusBounds = Rectangle.Inflate(bounds, -4, -4);
-                ControlPaint.DrawFocusRectangle(e.Graphics, focusBounds, colors.Text, Color.Transparent);
-            }
         }
 
         protected override void Dispose(bool disposing)
