@@ -10,7 +10,7 @@
 
 <p align="center">
   Inspect compatibility, apply a reversible resolution patch, launch the right account,<br />
-  and verify the result from one focused Windows control center.
+  and verify the result from one focused Windows app.
 </p>
 
 <p align="center">
@@ -24,6 +24,8 @@
   <a href="https://github.com/xMagnetoFX/GPG-Patcher/releases/latest"><strong>Download</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
   <a href="#quick-start"><strong>Quick start</strong></a>
+  &nbsp;&nbsp;•&nbsp;&nbsp;
+  <a href="#auto-patch"><strong>Auto-patch</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
   <a href="#architecture"><strong>Architecture</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
@@ -41,7 +43,7 @@ GPG Patcher is a Windows desktop utility for Google Play Games installations whe
 The Accounts experience reads the real local Play Games instance order and can launch one exact account using its stable Android library ID—no OCR, numbered placeholder slots, or account-picker automation.
 
 <p align="center">
-  <img src="Resource/Interface.png" alt="GPG Patcher Overview with Accounts navigation" width="1262" height="950" />
+  <img src="Resource/Interface.png" alt="GPG Patcher Home page with status cards and activity log" width="1272" height="910" />
 </p>
 
 <table>
@@ -63,6 +65,16 @@ The Accounts experience reads the real local Play Games instance order and can l
     <td width="50%" valign="top">
       <strong>↶ Reversible by design</strong><br />
       Back up pristine service files by installed version and restore them through the same interface.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <strong>⟳ Auto-patch</strong><br />
+      Optionally patch again after each Google Play Games update, without waiting for you to notice.
+    </td>
+    <td width="50%" valign="top">
+      <strong>☰ Plain-language activity log</strong><br />
+      See clear results and feature status instead of raw command output.
     </td>
   </tr>
 </table>
@@ -91,9 +103,22 @@ The selected profile is applied the next time Patch runs. GPG Patcher updates th
 7. Return to Home and select **Verify** after the game starts.
 
 > [!TIP]
-> Turn on **Auto-patch** in Settings to patch again after each Google Play Games update. It asks for administrator permission once, installs to `C:\Program Files\GPG Patcher`, and waits for any open game to close. Turn it back on after updating GPG Patcher so the installed copy is refreshed. Updates the patcher does not support yet are left unpatched, with a notification.
+> Use **Restore** to return `ServiceLib.dll` and the service configuration to the pristine backed-up state. The Play Games service is restarted automatically after Patch or Restore, with normal user rights.
 
-> Use **Restore** to return `ServiceLib.dll` and the service configuration to the pristine backed-up state. The Play Games service is restarted automatically after Patch or Restore.
+## Auto-patch
+
+Google Play Games replaces its service folder when an update is applied, which removes the patch. Turn on **Auto-patch** in Settings to reapply it automatically.
+
+- Windows asks for administrator permission once. GPG Patcher then copies itself to `C:\Program Files\GPG Patcher` and registers a logon task, so later patches need no prompt.
+- A small background process watches for a new Play Games version and reapplies your last patched resolution and UHD fallback choice.
+- If a game is open, it waits for the game to close.
+- If the update is not supported yet, it leaves Play Games unpatched and shows a notification once.
+- If patching fails three times, it stops and shows a notification.
+- It acts only when the version changes, so **Restore** is never undone.
+
+Turn the switch off to remove the task and the installed copy. After updating GPG Patcher, turn the switch off and on again to refresh the installed copy.
+
+The watcher's log is at `%LocalAppData%\GpgPatcher\auto-patch.log`.
 
 ## Accounts
 
@@ -114,7 +139,7 @@ The UI is intentionally thin: it delegates maintenance work to the shared comman
 
 ```mermaid
 flowchart LR
-    User([User]) --> UI["WinForms control center<br/>Home · Accounts · Settings"]
+    User([User]) --> UI["WinForms app<br/>Home · Accounts · Settings"]
 
     subgraph App["GPG Patcher"]
         UI --> Host["Core command host<br/>inspect · patch · verify · restore"]
@@ -122,6 +147,7 @@ flowchart LR
         UI --> Launcher["Exact-instance launcher<br/>validated deep link"]
         Host --> Inspector["Compatibility + status inspector"]
         Host --> Patcher["Backup + dnlib patcher<br/>service stop / restart"]
+        Watcher["Auto-patch watcher<br/>logon task, version changes"] --> Patcher
     end
 
     subgraph LocalState["Local Play Games state"]
@@ -166,7 +192,7 @@ sequenceDiagram
     App->>GPG: Stop service
     App->>Backup: Preserve pristine library and configuration
     App->>GPG: Install patched library and hook assembly
-    App->>GPG: Restart service
+    App->>GPG: Restart service with normal user rights
     App-->>User: Ready to launch and verify
 ```
 
@@ -192,6 +218,8 @@ The GUI uses the same command host exposed through headless mode:
 | `viewport-diagnose` | Inspect the live surface, DWM bounds, DPI, monitor, and viewport logs |
 | `force-viewport [--allow-offscreen]` | Resize the visible game surface to the installed target |
 | `restore` | Restore pristine files and restart the service |
+| `auto-patch-enable` | Install the watcher and start it (requires administrator) |
+| `auto-patch-disable` | Stop the watcher and remove the installed copy (requires administrator) |
 
 `pick-account` rejects ambiguous duplicate gamer tags. `launch-instance` rejects malformed, stale, or unknown IDs before opening a deep link.
 
@@ -202,6 +230,7 @@ The GUI uses the same command host exposed through headless mode:
 
 - **Compatibility gated:** patch controls are enabled only when the expected internal targets and hook signatures match.
 - **Backup protected:** patching aborts if the service already appears modified and no pristine backup is available.
+- **Auto-patch protected:** the watcher runs only from Program Files, so ordinary programs cannot replace what the administrator task starts. It runs as the signed-in user, never as SYSTEM.
 - **Restore supported:** original service files are stored per installed Play Games version under `%LocalAppData%\GpgPatcher\backup\`.
 - **Account data minimized:** the repository is read-only and returns only instance ID, library ID, display name, masked email, avatar path, and foreground state.
 - **No secret logging:** decrypted credentials, tokens, state blobs, and full email addresses are never written to app output.
@@ -213,6 +242,7 @@ Use this project at your own risk. No warranty is provided for breakage, data lo
 | Requirement | Current support |
 | :--- | :--- |
 | Operating system | Windows |
+| Display | Fixed window of 1272 × 910 pixels; smaller screens will clip it |
 | Runtime | .NET Framework 4.8 |
 | Target game | Whiteout Survival (`com.gof.global`) |
 | Google Play Games location | Default `C:\Program Files\Google\Play Games\current\service\` path |
@@ -246,13 +276,13 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Build-Release.ps1
 | Versioned release folder and ZIP | `artifacts\release\` |
 | SHA-256 release manifest | `artifacts\release\SHA256SUMS.txt` |
 
-The test harness covers resolution mapping, configuration fallbacks, account masking and fallbacks, responsive account-grid sizing, instance resolution, hook behavior, temp-copy patching, idempotency, and pristine restore behavior. Its patch simulation runs against a temporary `ServiceLib.dll` copy rather than modifying Program Files.
+The test harness covers resolution mapping, configuration fallbacks, account masking and fallbacks, responsive account-grid sizing, instance resolution, hook behavior, auto-patch decisions and update scenarios, temp-copy patching, idempotency, and pristine restore behavior. Its patch simulation runs against a temporary `ServiceLib.dll` copy rather than modifying Program Files.
 
 ## Project layout
 
 ```text
 src/App                 WinForms interface, navigation, account cards, and process runner
-src/Core                Compatibility, patching, account discovery, launch, logs, and restore
+src/Core                Compatibility, patching, auto-patch, account discovery, launch, logs, and restore
 src/Hooks               Runtime display callbacks loaded by the patched Play Games service
 src/NativeViewportShim  Experimental native viewport diagnostics shim
 tests                   Standalone integration and temp-copy patch harness
