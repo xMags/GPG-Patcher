@@ -69,11 +69,8 @@ namespace GpgPatcher.Gui
             BackColor = palette.WindowBackground;
             ForeColor = palette.TextPrimary;
             Font = palette.CreateUiFont(9.5f, FontStyle.Regular);
-            MinimumSize = new Size(1120, 780);
-            var workingArea = Screen.PrimaryScreen.WorkingArea;
-            Size = new Size(
-                Math.Max(MinimumSize.Width, Math.Min(1280, workingArea.Width)),
-                Math.Max(MinimumSize.Height, Math.Min(960, workingArea.Height)));
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
             Text = string.Empty;
             ShowIcon = false;
@@ -100,10 +97,8 @@ namespace GpgPatcher.Gui
             // Must be a direct child of the form: its hit tests fall through to the parent.
             windowTitleBar = new WindowTitleBar(palette, brandLogo, "GPG Patcher");
             windowTitleBar.MinimizeClicked += (sender, args) => WindowState = FormWindowState.Minimized;
-            windowTitleBar.MaximizeClicked += (sender, args) => ToggleMaximized();
             windowTitleBar.CloseClicked += (sender, args) => Close();
             Controls.Add(windowTitleBar);
-            SizeChanged += (sender, args) => windowTitleBar.SetMaximized(WindowState == FormWindowState.Maximized);
 
             NavigateTo(AppPage.Home);
             Shown += async (sender, args) => await RefreshInspectAsync();

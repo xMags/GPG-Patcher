@@ -6,7 +6,7 @@ namespace GpgPatcher.Gui
 {
     /// <summary>
     /// Replaces the native caption. It lets hit tests fall through to the form so Windows keeps
-    /// handling drag, double-click maximize, snapping and the system menu.
+    /// handling drag and the system menu.
     /// The logo is borrowed from the form, which owns its lifetime.
     /// </summary>
     internal sealed class WindowTitleBar : Panel
@@ -15,14 +15,12 @@ namespace GpgPatcher.Gui
         private const int HtTransparent = -1;
         private const string MinimizeGlyph = "";
         private const string MaximizeGlyph = "";
-        private const string RestoreGlyph = "";
         private const string CloseGlyph = "";
 
         private readonly ThemePalette palette;
         private readonly Image logo;
         private readonly string title;
         private readonly Font titleFont;
-        private readonly WindowCaptionButton maximizeButton;
 
         public WindowTitleBar(ThemePalette palette, Image logo, string title)
         {
@@ -37,11 +35,11 @@ namespace GpgPatcher.Gui
             BackColor = palette.Surface;
 
             var minimizeButton = CreateCaptionButton(MinimizeGlyph, false);
-            maximizeButton = CreateCaptionButton(MaximizeGlyph, false);
+            var maximizeButton = CreateCaptionButton(MaximizeGlyph, false);
+            maximizeButton.Enabled = false;
             var closeButton = CreateCaptionButton(CloseGlyph, true);
 
             minimizeButton.Click += (sender, args) => MinimizeClicked?.Invoke(this, EventArgs.Empty);
-            maximizeButton.Click += (sender, args) => MaximizeClicked?.Invoke(this, EventArgs.Empty);
             closeButton.Click += (sender, args) => CloseClicked?.Invoke(this, EventArgs.Empty);
 
             // Docking runs from the last control added, so Close ends up on the outside edge.
@@ -52,14 +50,7 @@ namespace GpgPatcher.Gui
 
         public event EventHandler MinimizeClicked;
 
-        public event EventHandler MaximizeClicked;
-
         public event EventHandler CloseClicked;
-
-        public void SetMaximized(bool maximized)
-        {
-            maximizeButton.Glyph = maximized ? RestoreGlyph : MaximizeGlyph;
-        }
 
         protected override void WndProc(ref Message m)
         {
@@ -171,6 +162,22 @@ namespace GpgPatcher.Gui
             Invalidate();
         }
 
+        protected override void OnEnabledChanged(EventArgs e)
+        {
+            base.OnEnabledChanged(e);
+            Invalidate();
+        }
+
+        private Color ResolveGlyphColor(Color hoverText)
+        {
+            if (!Enabled)
+            {
+                return palette.BorderStrong;
+            }
+
+            return isHovered ? hoverText : palette.TextPrimary;
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             var hoverFill = isClose ? CloseHoverFill : palette.SurfaceTint;
@@ -187,7 +194,7 @@ namespace GpgPatcher.Gui
                 glyph,
                 glyphFont,
                 new Rectangle(0, 0, Width, Height - 1),
-                isHovered ? hoverText : palette.TextPrimary,
+                ResolveGlyphColor(hoverText),
                 TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
             using (var borderPen = new Pen(palette.Border))
