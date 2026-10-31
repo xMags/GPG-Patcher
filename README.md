@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/xMagnetoFX/GPG-Patcher/releases/latest"><img src="https://img.shields.io/badge/Release-v1.3.0-2563EB?style=for-the-badge" alt="Release v1.3.0" /></a>
+  <a href="https://github.com/xMagnetoFX/GPG-Patcher/releases/latest"><img src="https://img.shields.io/badge/Release-v1.4.0-2563EB?style=for-the-badge" alt="Release v1.4.0" /></a>
   <img src="https://img.shields.io/badge/Platform-Windows-0F172A?style=for-the-badge&logo=windows11&logoColor=white" alt="Windows" />
   <img src="https://img.shields.io/badge/Runtime-.NET_Framework_4.8-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET Framework 4.8" />
   <img src="https://img.shields.io/badge/Target-Whiteout_Survival-0F766E?style=for-the-badge" alt="Whiteout Survival" />
