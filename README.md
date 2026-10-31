@@ -43,7 +43,7 @@ GPG Patcher is a Windows desktop utility for Google Play Games installations whe
 The Accounts experience reads the real local Play Games instance order and can launch one exact account using its stable Android library ID—no OCR, numbered placeholder slots, or account-picker automation.
 
 <p align="center">
-  <img src="Resource/Interface.png" alt="GPG Patcher Home page with status cards and activity log" width="1272" height="910" />
+  <img src="Resource/Interface-Home.png" alt="GPG Patcher Home page with status cards and activity log" width="1272" height="910" />
 </p>
 
 <table>
