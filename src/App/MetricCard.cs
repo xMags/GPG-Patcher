@@ -12,7 +12,7 @@ namespace GpgPatcher.Gui
 
         public MetricCard()
         {
-            CornerRadius = 20;
+            CornerRadius = 0;
             Padding = new Padding(16, 12, 16, 12);
             Height = 82;
             Dock = DockStyle.Fill;

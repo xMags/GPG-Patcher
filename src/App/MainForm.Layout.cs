@@ -14,13 +14,20 @@ namespace GpgPatcher.Gui
                 Height = 76,
                 Margin = new Padding(0, 0, 0, 12),
                 Padding = new Padding(18, 12, 18, 12),
-                CornerRadius = 22,
+                CornerRadius = 0,
                 FillColor = palette.Surface,
                 BorderColor = palette.Border,
             };
 
-            var maintenanceRow = CreateButtonRow(actionPanel.FillColor, 0, 0, 0, 0);
-            maintenanceRow.Padding = new Padding(0, 5, 0, 0);
+            var maintenanceRow = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 5,
+                RowCount = 1,
+                BackColor = actionPanel.FillColor,
+                Margin = new Padding(0),
+            };
+            maintenanceRow.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             actionPanel.Controls.Add(maintenanceRow);
 
             patchButton = CreateButton("Patch", ModernButtonTone.Primary, async (sender, args) => await PatchAsync());
@@ -35,23 +42,17 @@ namespace GpgPatcher.Gui
             diagnoseViewportButton.IconGlyph = "\uE9D9";
             restoreButton.IconGlyph = "\uE777";
 
-            SetButtonWidth(patchButton, 124);
-            SetButtonWidth(refreshButton, 136);
-            SetButtonWidth(verifyButton, 112);
-            SetButtonWidth(diagnoseViewportButton, 148);
-            SetButtonWidth(restoreButton, 124);
-
-            patchButton.Margin = new Padding(0, 0, 12, 0);
-            refreshButton.Margin = new Padding(0, 0, 12, 0);
-            verifyButton.Margin = new Padding(0, 0, 12, 0);
-            diagnoseViewportButton.Margin = new Padding(0, 0, 12, 0);
-            restoreButton.Margin = new Padding(0);
-
-            maintenanceRow.Controls.Add(patchButton);
-            maintenanceRow.Controls.Add(refreshButton);
-            maintenanceRow.Controls.Add(verifyButton);
-            maintenanceRow.Controls.Add(diagnoseViewportButton);
-            maintenanceRow.Controls.Add(restoreButton);
+            var actionButtons = new[] { patchButton, refreshButton, verifyButton, diagnoseViewportButton, restoreButton };
+            for (var column = 0; column < actionButtons.Length; column++)
+            {
+                var button = actionButtons[column];
+                var isLast = column == actionButtons.Length - 1;
+                maintenanceRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
+                button.CenterContent = true;
+                button.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                button.Margin = new Padding(0, 0, isLast ? 0 : 12, 0);
+                maintenanceRow.Controls.Add(button, column, 0);
+            }
 
             return actionPanel;
         }
@@ -270,11 +271,6 @@ namespace GpgPatcher.Gui
                 BackColor = backColor,
                 Margin = new Padding(left, top, right, bottom),
             };
-        }
-
-        private static void SetButtonWidth(Control button, int width)
-        {
-            button.Width = width;
         }
 
         private MetricCard CreateMetricCard(string title)

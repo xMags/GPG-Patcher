@@ -15,6 +15,10 @@ namespace GpgPatcher.Gui
 
     internal sealed class ModernButton : Button
     {
+        private const int DefaultIconLeft = 14;
+        private const int IconSlotWidth = 24;
+        private const int IconTextGap = 6;
+
         private bool isHovered;
         private bool isPressed;
         private readonly Font fluentIconFont;
@@ -44,6 +48,8 @@ namespace GpgPatcher.Gui
         public ThemePalette Palette { get; set; }
 
         public string IconGlyph { get; set; }
+
+        public bool CenterContent { get; set; }
 
         protected override void OnMouseEnter(EventArgs e)
         {
@@ -114,7 +120,8 @@ namespace GpgPatcher.Gui
             }
             else
             {
-                var iconBounds = new Rectangle(14, 0, 24, Height - 1);
+                var iconLeft = ResolveIconLeft();
+                var iconBounds = new Rectangle(iconLeft, 0, IconSlotWidth, Height - 1);
                 TextRenderer.DrawText(
                     e.Graphics,
                     IconGlyph,
@@ -123,7 +130,8 @@ namespace GpgPatcher.Gui
                     colors.Text,
                     TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
 
-                var textBounds = new Rectangle(44, 0, Math.Max(0, Width - 54), Height - 1);
+                var textLeft = iconLeft + IconSlotWidth + IconTextGap;
+                var textBounds = new Rectangle(textLeft, 0, Math.Max(0, Width - textLeft - DefaultIconLeft + 4), Height - 1);
                 TextRenderer.DrawText(
                     e.Graphics,
                     Text,
@@ -148,6 +156,18 @@ namespace GpgPatcher.Gui
             }
 
             base.Dispose(disposing);
+        }
+
+        private int ResolveIconLeft()
+        {
+            if (!CenterContent)
+            {
+                return DefaultIconLeft;
+            }
+
+            var textWidth = TextRenderer.MeasureText(Text, Font).Width;
+            var contentWidth = IconSlotWidth + IconTextGap + textWidth;
+            return Math.Max(DefaultIconLeft, (Width - contentWidth) / 2);
         }
 
         private static Font CreateFluentIconFont()
